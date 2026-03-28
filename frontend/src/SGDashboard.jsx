@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import StakeholderGuidance from "./StakeholderGuidance";
 
 // Robinson projection lookup tables (per 5° latitude, 0°–90°)
@@ -294,10 +294,10 @@ const NEWS_FALLBACK = [
 
 function inferNewsTag(title, hook) {
   const text = `${title} ${hook}`.toLowerCase();
-  if (/oil|gas|lng|crude|fuel|energy|coal|diesel/.test(text)) return "energy";
-  if (/rice|wheat|food|palm|beef|poultry|soy|dairy|produce|fish/.test(text)) return "food";
-  if (/water|pipeline|johor|reservoir|desalin/.test(text)) return "water";
-  if (/diplomat|asean|minister|treaty|bilateral|aukus|security/.test(text)) return "diplomacy";
+  if (/oil|gas|lng|crude|fuel|energy|coal|diesel|electricity|power grid|refin|barrel|petrol|kerosene|renewable|solar|nuclear/.test(text)) return "energy";
+  if (/rice|wheat|food|palm|beef|poultry|soy|dairy|produce|fish|seafood|grain|agri|crop|harvest|onion|vegetable|meat|livestock|flour|sugar|import.*tariff|tariff.*food|food.*supply|food.*security|food.*import|processed food|food price/.test(text)) return "food";
+  if (/water|pipeline|johor|reservoir|desalin|drought|rainfall/.test(text)) return "water";
+  if (/diplomat|asean|minister|treaty|bilateral|aukus|security|sanction|alliance|geopolit|tension|conflict|foreign policy|summit|naval|military/.test(text)) return "diplomacy";
   return "trade";
 }
 
@@ -803,97 +803,227 @@ Return ONLY valid JSON with this structure:
   "tradeoff": "one sentence on what is sacrificed with this strategy"
 }`;
 
+// Country-specific Team B (export partnership) mock data
+const COUNTRY_TRADE_MOCKS = {
+  Qatar: {
+    strategy: "Offer price-locked LNG with rerouting guarantee",
+    rationale: "Qatar can absorb Red Sea freight premium and lock in 6-month pricing, protecting Singapore from spot market volatility.",
+    actions: [
+      { step: 1, action: "Propose 6-month LNG price lock at current rate", impact: "Eliminate spot market exposure for SG" },
+      { step: 2, action: "Activate Cape of Good Hope rerouting protocol", impact: "Add 14 days transit, zero supply gap" },
+      { step: 3, action: "Bundle deal with Qatari sovereign fund pledge", impact: "Sweeten offer with infrastructure co-investment" },
+    ],
+    tradeoff: "Price lock prevents SG from benefiting if global LNG prices fall during the 6-month window.",
+    sources: [
+      { name: "QatarEnergy Press Release", age: "2h ago" },
+      { name: "GIIGNL LNG Report 2025", age: "3d ago" },
+      { name: "Bloomberg Commodities", age: "Live" },
+    ],
+  },
+  Malaysia: {
+    strategy: "Expand Petronas pipeline volume via fast-track bilateral",
+    rationale: "Existing Johor pipeline infrastructure allows Malaysia to ramp volumes within 30 days without new logistics risk.",
+    actions: [
+      { step: 1, action: "Trigger Petronas emergency volume uplift clause", impact: "Add 18% LNG/gas flow within 30 days" },
+      { step: 2, action: "Invoke PM-level fast-track energy MOU", impact: "Bypass standard tender timeline" },
+      { step: 3, action: "Offer joint Iskandar energy zone investment", impact: "Deepen long-term supply partnership" },
+    ],
+    tradeoff: "Malaysia's own domestic demand rising 8% YoY limits how long elevated export volumes can be sustained.",
+    sources: [
+      { name: "Petronas Capacity Report", age: "1d ago" },
+      { name: "IEA Malaysia Energy 2025", age: "1w ago" },
+      { name: "BNM Economic Bulletin", age: "4h ago" },
+    ],
+  },
+  Thailand: {
+    strategy: "Redirect Q2 rice and seafood surplus to Singapore",
+    rationale: "Thailand's Q1 harvest surplus creates a 60-day window to divert export volumes at competitive spot prices.",
+    actions: [
+      { step: 1, action: "Activate Thai-SG food corridor emergency protocol", impact: "Redirect 40,000 MT rice within 2 weeks" },
+      { step: 2, action: "Negotiate preferential duty via ASEAN FTA", impact: "Reduce SG import cost by 6–9%" },
+      { step: 3, action: "Coordinate with Thai Agri Ministry on cold chain", impact: "Ensure perishables reach SG within SLA" },
+    ],
+    tradeoff: "Thai domestic prices may rise if too much surplus is diverted — political risk for Bangkok government.",
+    sources: [
+      { name: "Thai Rice Exporters Association", age: "6h ago" },
+      { name: "ASEAN Food Security Report", age: "2d ago" },
+      { name: "FAO Thailand Outlook", age: "1w ago" },
+    ],
+  },
+  Indonesia: {
+    strategy: "Offer palm oil and rice quota increase under ASEAN compact",
+    rationale: "Indonesia holds the region's largest agricultural surplus buffer; a quota uplift can be activated within the ASEAN Emergency Food Reserve framework.",
+    actions: [
+      { step: 1, action: "Invoke ASEAN Emergency Food Reserve mechanism", impact: "Unlock 80,000 MT palm oil allocation" },
+      { step: 2, action: "Negotiate bilateral quota increase via Bulog", impact: "Add 15% rice volume over 60 days" },
+      { step: 3, action: "Offer Batam free-trade zone logistics corridor", impact: "Cut SG-ID transit time by 40%" },
+    ],
+    tradeoff: "Indonesian domestic elections in Q3 make export quota commitments politically sensitive.",
+    sources: [
+      { name: "Bulog Export Bulletin", age: "3h ago" },
+      { name: "ASEAN EFR Database", age: "Live" },
+      { name: "Jakarta Post: Trade", age: "1d ago" },
+    ],
+  },
+  Australia: {
+    strategy: "Fast-track LNG spot contracts under CEPA energy annex",
+    rationale: "Australia's North West Shelf excess capacity can cover 60% of Singapore's Qatar LNG volume within 30 days under existing CEPA terms.",
+    actions: [
+      { step: 1, action: "Invoke CEPA energy emergency supply clause", impact: "Activate AU LNG flow within 30 days" },
+      { step: 2, action: "Coordinate with Woodside for tanker reallocation", impact: "6 LNG tankers redirected to SG route" },
+      { step: 3, action: "Lock 90-day price at current index + 3% premium", impact: "Cost certainty while Qatar resolves" },
+    ],
+    tradeoff: "AU LNG carries longer transit time than Qatar — adds 8–10 days to delivery cycle.",
+    sources: [
+      { name: "CEPA Energy Annex 2023", age: "Archive" },
+      { name: "Woodside Energy Update", age: "5h ago" },
+      { name: "DFAT Trade Advisory", age: "2d ago" },
+    ],
+  },
+  India: {
+    strategy: "Activate CECA trade corridor for industrial goods rerouting",
+    rationale: "India's manufacturing surplus and CECA preferential terms allow rapid substitution of key industrial imports at below-tariff rates.",
+    actions: [
+      { step: 1, action: "File CECA emergency goods substitution request", impact: "Tariff waiver on S$400M goods category" },
+      { step: 2, action: "Reroute via Chennai-Singapore shipping corridor", impact: "12-day transit, no port congestion" },
+      { step: 3, action: "Engage FIEO for priority export allocation", impact: "Volume commitment within 21 days" },
+    ],
+    tradeoff: "Indian export bureaucracy may slow actual delivery despite diplomatic agreement.",
+    sources: [
+      { name: "CECA Trade Database", age: "Live" },
+      { name: "FIEO Export Report", age: "3d ago" },
+      { name: "MAS Trade Monitor", age: "1d ago" },
+    ],
+  },
+  Japan: {
+    strategy: "Co-activate trilateral supply chain resilience pact",
+    rationale: "Japan's existing bilateral resilience MOU with Singapore enables joint procurement and logistics sharing within 48 hours.",
+    actions: [
+      { step: 1, action: "Invoke SG-JP Supply Resilience MOU clause 4.2", impact: "Joint procurement activated within 48h" },
+      { step: 2, action: "Deploy Japan strategic reserve buffer to SG", impact: "Bridge 30-day gap at zero cost premium" },
+      { step: 3, action: "Co-coordinate with METI on third-country sourcing", impact: "Expand options to 3 new supplier markets" },
+    ],
+    tradeoff: "Japan's own Q2 demand cycle limits how much buffer can be shared before domestic commitments bind.",
+    sources: [
+      { name: "METI Energy Security Brief", age: "8h ago" },
+      { name: "SG-JP MOU Annex B", age: "Archive" },
+      { name: "Nikkei Asia: Supply Chain", age: "1d ago" },
+    ],
+  },
+};
+
+// Country-specific Team A (Singapore resilience) risk mock data
+const COUNTRY_RISK_MOCKS = {
+  Qatar: {
+    strategy: "Diversify LNG — activate AU and US spot contracts",
+    rationale: "Reducing single-source LNG dependency from Qatar protects against Red Sea rerouting delays at an acceptable 4–6% cost premium.",
+    actions: [
+      { step: 1, action: "Issue emergency tender to AU LNG spot market", impact: "Cover 60% of Qatar volume within 30 days" },
+      { step: 2, action: "Extend strategic gas reserve to 90-day buffer", impact: "Eliminate short-term supply shock risk" },
+      { step: 3, action: "Fast-track LNG terminal capacity expansion", impact: "Receive multi-source LNG by Q3" },
+    ],
+    tradeoff: "Diversification costs 4–6% premium over Qatar contract rate during transition period.",
+    sources: [
+      { name: "SG Energy Authority Reserve Report", age: "Internal" },
+      { name: "GIIGNL Spot Market Data", age: "Live" },
+      { name: "EMA Strategic Energy Review", age: "1w ago" },
+    ],
+  },
+  Malaysia: {
+    strategy: "Diversify beyond Malaysia — reduce Johor pipeline dependency",
+    rationale: "Over-reliance on a single pipeline corridor is a structural vulnerability; parallel sourcing from Qatar and Australia must be pre-positioned.",
+    actions: [
+      { step: 1, action: "Pre-position AU LNG tanker allocation in parallel", impact: "Second-source ready within 45 days" },
+      { step: 2, action: "Cap Malaysia pipeline share at 55% of total supply", impact: "Reduce single-corridor risk exposure" },
+      { step: 3, action: "Build 60-day strategic reserve top-up", impact: "Buffer against Malaysia domestic demand spike" },
+    ],
+    tradeoff: "Dual-sourcing increases procurement overhead and coordination complexity across supply chains.",
+    sources: [
+      { name: "EMA Pipeline Dependency Study", age: "Internal" },
+      { name: "SG Strategic Reserve Audit", age: "2d ago" },
+      { name: "CIMB Energy Outlook", age: "1w ago" },
+    ],
+  },
+  Thailand: {
+    strategy: "Build food reserve buffer + fast-track AU and IN sourcing",
+    rationale: "Thailand is a strong near-term option but domestic political constraints limit reliability; Singapore must pre-position Australian wheat and Indian lentil contracts in parallel.",
+    actions: [
+      { step: 1, action: "Activate SFA 60-day emergency food reserve release", impact: "Cover 30-day supply gap immediately" },
+      { step: 2, action: "Fast-track AU wheat and beef spot contracts", impact: "Second-source secured within 21 days" },
+      { step: 3, action: "Issue preemptive tender for IN rice and lentils", impact: "Diversify away from Thai sole dependency" },
+    ],
+    tradeoff: "Running parallel sourcing streams increases per-unit cost by 8–12% during the transition window.",
+    sources: [
+      { name: "SFA Emergency Protocol", age: "Internal" },
+      { name: "AU-SG CEPA Food Annex", age: "Archive" },
+      { name: "FAO Food Price Index", age: "1h ago" },
+    ],
+  },
+  Indonesia: {
+    strategy: "Diversify food sources — reduce ASEAN single-bloc risk",
+    rationale: "Concentrating too much food sourcing within ASEAN creates correlated risk; Australia and Brazil must be activated as structural alternatives.",
+    actions: [
+      { step: 1, action: "Negotiate AU wheat and Brazil soy forward contracts", impact: "Non-ASEAN food base established" },
+      { step: 2, action: "Increase SFA strategic reserve to 120-day level", impact: "Extended buffer against regional shocks" },
+      { step: 3, action: "Accelerate urban vertical farm programme", impact: "Reduce import dependency by 8% in 18 months" },
+    ],
+    tradeoff: "Out-of-region sourcing carries higher logistics costs and longer lead times than ASEAN corridors.",
+    sources: [
+      { name: "SFA Food Security Review", age: "Internal" },
+      { name: "USDA WASDE Report", age: "3d ago" },
+      { name: "CNA: Food Diversification", age: "2d ago" },
+    ],
+  },
+  default: {
+    strategy: "Diversify and build strategic buffer",
+    rationale: "Spreading supply across 3+ sources and increasing reserve depth eliminates single-point risk.",
+    actions: [
+      { step: 1, action: "Activate SFA emergency diversification protocol", impact: "Reduce single-source dependency to <30%" },
+      { step: 2, action: "Double strategic reserve to 90-day supply", impact: "Eliminate short-term supply shock" },
+      { step: 3, action: "Fast-track agreements with 2 new partner nations", impact: "Long-term resilience score +40%" },
+    ],
+    tradeoff: "Diversification increases short-term procurement costs by an estimated 12–18%.",
+    sources: [
+      { name: "SFA Emergency Protocol", age: "Internal" },
+      { name: "FAO Food Price Index", age: "1h ago" },
+      { name: "Straits Times: Supply Chain", age: "5h ago" },
+    ],
+  },
+};
+
 function getMockDecision(agentId, route, goal) {
-  const mocks = {
-    trade: {
+  const country = route.country;
+  if (agentId === "trade") {
+    return COUNTRY_TRADE_MOCKS[country] || COUNTRY_TRADE_MOCKS.Australia || {
       strategy: "Activate spot market procurement",
-      rationale:
-        "Immediate cost-competitive sourcing from alternative suppliers reduces fiscal exposure.",
+      rationale: "Immediate cost-competitive sourcing from alternative suppliers reduces fiscal exposure.",
       actions: [
-        {
-          step: 1,
-          action: "Issue emergency tender on spot market",
-          impact: "Source at 5–8% premium vs tariff",
-        },
-        {
-          step: 2,
-          action: "Negotiate volume discounts with AU/TH suppliers",
-          impact: "Lock in 3-month stable pricing",
-        },
-        {
-          step: 3,
-          action: "Review and freeze non-essential import contracts",
-          impact: "Free up S$120M procurement budget",
-        },
+        { step: 1, action: "Issue emergency tender on spot market", impact: "Source at 5–8% premium" },
+        { step: 2, action: "Negotiate volume discounts with regional suppliers", impact: "Lock in 3-month stable pricing" },
+        { step: 3, action: "Review non-essential import contracts", impact: "Free up S$120M procurement budget" },
       ],
-      tradeoff:
-        "Short-term cost savings may reduce leverage in future bilateral negotiations.",
-      sources: [
-        { name: "MTI Trade Advisory", age: "4h ago" },
-        { name: "Bloomberg: Export Curbs", age: "1d ago" },
-        { name: "WTO Tariff Database", age: "Live" },
-      ],
-    },
-    foreign: {
-      strategy: "Quiet diplomacy via ASEAN framework",
-      rationale:
-        "Back-channel engagement preserves the bilateral relationship while buying time for diversification.",
-      actions: [
-        {
-          step: 1,
-          action: "Request PM-level bilateral call within 48h",
-          impact: "Signal seriousness without escalation",
-        },
-        {
-          step: 2,
-          action: "Invoke ASEAN mediation clause quietly",
-          impact: "Neutral third-party buffer engaged",
-        },
-        {
-          step: 3,
-          action: "Offer joint infrastructure investment as carrot",
-          impact: "Create mutual incentive to resolve",
-        },
-      ],
-      tradeoff:
-        "Diplomatic patience delays faster economic solutions and may signal weakness.",
-      sources: [
-        { name: "MFA Singapore Statement", age: "6h ago" },
-        { name: "ASEAN Secretariat", age: "2d ago" },
-        { name: "Reuters: Diplomacy", age: "3h ago" },
-      ],
-    },
-    risk: {
-      strategy: "Diversify and build strategic buffer",
-      rationale:
-        "Spreading supply across 3+ sources and increasing reserve depth eliminates single-point risk.",
-      actions: [
-        {
-          step: 1,
-          action: "Activate SFA emergency diversification protocol",
-          impact: "Reduce single-source dependency to <30%",
-        },
-        {
-          step: 2,
-          action: "Double strategic reserve to 90-day supply",
-          impact: "Eliminate short-term supply shock",
-        },
-        {
-          step: 3,
-          action: "Fast-track agreements with 2 new partner nations",
-          impact: "Long-term resilience score +40%",
-        },
-      ],
-      tradeoff:
-        "Diversification increases short-term procurement costs by an estimated 12–18%.",
-      sources: [
-        { name: "SFA Emergency Protocol", age: "Internal" },
-        { name: "FAO Food Price Index", age: "1h ago" },
-        { name: "Straits Times: Supply Chain", age: "5h ago" },
-      ],
-    },
+      tradeoff: "Short-term cost savings may reduce leverage in future bilateral negotiations.",
+      sources: [{ name: "MTI Trade Advisory", age: "4h ago" }, { name: "WTO Tariff Database", age: "Live" }],
+    };
+  }
+  if (agentId === "risk") {
+    return COUNTRY_RISK_MOCKS[country] || COUNTRY_RISK_MOCKS.default;
+  }
+  // foreign agent — diplomacy framing, lightly country-adjusted
+  return {
+    strategy: `Quiet diplomacy via ASEAN + bilateral ${country} channel`,
+    rationale: `Back-channel engagement with ${country} preserves the bilateral relationship while buying time for diversification.`,
+    actions: [
+      { step: 1, action: `Request PM-level bilateral call with ${country} within 48h`, impact: "Signal seriousness without escalation" },
+      { step: 2, action: "Invoke ASEAN mediation clause quietly", impact: "Neutral third-party buffer engaged" },
+      { step: 3, action: "Offer joint infrastructure investment as carrot", impact: "Create mutual incentive to resolve" },
+    ],
+    tradeoff: "Diplomatic patience delays faster economic solutions and may signal weakness.",
+    sources: [
+      { name: "MFA Singapore Statement", age: "6h ago" },
+      { name: "ASEAN Secretariat", age: "2d ago" },
+    ],
   };
-  return mocks[agentId] || mocks.trade;
 }
 
 async function callDecisionAgent(
@@ -956,30 +1086,231 @@ async function callDecisionAgent(
 
 // ── Synthesis ──────────────────────────────────────────────────────────────
 
+const COUNTRY_SYNTHESIS = {
+  Qatar: {
+    disrupted: {
+      final_position: "conditional",
+      viability_score: 0.68,
+      pros: [
+        "Qatar price lock absorbs Red Sea freight premium",
+        "Existing LNG infrastructure — no new terminal required",
+        "PM-level bilateral dialogue already active",
+      ],
+      cons: [
+        "Red Sea rerouting adds 12–14 days per shipment",
+        "Price lock prevents benefiting from a global LNG price drop",
+        "Single-corridor dependency remains structural risk",
+      ],
+      rationale: "Qatar's price lock offer is viable in the short term, but diversification to Australian LNG must proceed in parallel. A dual-track approach minimises cost while building resilience.",
+      recommended_action: "Accept Qatar price lock + activate AU LNG spot tender in parallel",
+      urgency: "high",
+    },
+    mild: {
+      final_position: "monitor",
+      viability_score: 0.77,
+      pros: [
+        "Current LNG volumes within normal delivery parameters",
+        "Qatar bilateral relationship stable at diplomatic level",
+        "No immediate cost impact from rerouting at current volumes",
+      ],
+      cons: [
+        "Red Sea situation could escalate and compress reaction time",
+        "No second-source LNG contract currently pre-positioned",
+      ],
+      rationale: "Disruption is manageable at current intensity. Recommend monitoring with a 72-hour trigger threshold and pre-positioning one alternative LNG supplier contract.",
+      recommended_action: "Monitor Red Sea situation + pre-position 1 AU LNG contingency contract",
+      urgency: "medium",
+    },
+    stable: {
+      final_position: "proceed",
+      viability_score: 0.88,
+      pros: [
+        "LNG deliveries at expected volumes and schedule",
+        "Qatar route unaffected by current freight disruptions",
+        "Long-term contract pricing below spot market",
+      ],
+      cons: ["Routine dual-source pre-positioning always advisable"],
+      rationale: "No action required. Qatar supply corridor is stable and cost-efficient. Standard review cadence is sufficient.",
+      recommended_action: "Maintain current Qatar contract — no intervention needed",
+      urgency: "low",
+    },
+  },
+  Malaysia: {
+    disrupted: {
+      final_position: "conditional",
+      viability_score: 0.71,
+      pros: [
+        "Petronas pipeline volume uplift feasible within 30 days",
+        "Proximity eliminates maritime rerouting risk",
+        "Strong PM-level bilateral relationship enables fast-track",
+      ],
+      cons: [
+        "Malaysia domestic gas demand rising — headroom limited",
+        "Fast-track negotiation still takes 30–45 days minimum",
+        "Over-dependence on a single pipeline corridor",
+      ],
+      rationale: "Malaysia pipeline expansion is the lowest-friction near-term option, but Singapore must simultaneously pre-position a second source. Recommend initiating the Petronas fast-track while tendering one AU LNG spot contract.",
+      recommended_action: "Trigger Petronas fast-track + issue 1 AU LNG spot tender as hedge",
+      urgency: "high",
+    },
+    mild: {
+      final_position: "monitor",
+      viability_score: 0.81,
+      pros: [
+        "Malaysia pipeline delivering at full contracted volumes",
+        "ASEAN diplomatic framework reduces escalation risk",
+        "No logistics disruption on the Johor corridor",
+      ],
+      cons: [
+        "Domestic Malaysian demand growth could tighten headroom by Q3",
+        "No backup supply contract currently active",
+      ],
+      rationale: "Situation is stable with manageable early warning signals. Pre-position a contingency contract with one non-ASEAN supplier before Q3 demand peaks.",
+      recommended_action: "Monitor + pre-position non-ASEAN contingency contract before Q3",
+      urgency: "medium",
+    },
+    stable: {
+      final_position: "proceed",
+      viability_score: 0.93,
+      pros: [
+        "Pipeline volumes at seasonal norms",
+        "Bilateral relations strong at all diplomatic levels",
+        "Lowest logistics cost of any SG energy corridor",
+      ],
+      cons: ["Structural single-corridor dependency warrants routine review"],
+      rationale: "No immediate action required. Malaysia corridor is the most cost-efficient and lowest-risk active supply route.",
+      recommended_action: "Maintain current contract — schedule annual dependency review",
+      urgency: "low",
+    },
+  },
+  Thailand: {
+    disrupted: {
+      final_position: "conditional",
+      viability_score: 0.65,
+      pros: [
+        "Q1 harvest surplus available for immediate diversion",
+        "ASEAN FTA eliminates import duty on most food categories",
+        "Bangkok politically motivated to maintain SG trade relationship",
+      ],
+      cons: [
+        "Thai domestic prices may rise if too much is diverted",
+        "60-day window closes as Thai domestic demand recovers",
+        "Logistics cold chain requires coordination lead time",
+      ],
+      rationale: "Thailand's surplus window is real but time-bounded. Activate ASEAN food corridor immediately while simultaneously locking in Australian wheat and beef as structural alternatives.",
+      recommended_action: "Activate Thai food corridor now + lock AU contracts as structural hedge",
+      urgency: "high",
+    },
+    mild: {
+      final_position: "monitor",
+      viability_score: 0.74,
+      pros: [
+        "Thai supply volumes stable within contracted parameters",
+        "ASEAN emergency food reserve mechanism available if needed",
+        "No pricing anomaly detected in Thai export data",
+      ],
+      cons: [
+        "Thai political cycle introduces medium-term uncertainty",
+        "Single-country ASEAN dependency carries correlated risk",
+      ],
+      rationale: "Supply is stable but the structural ASEAN concentration risk should be addressed. Recommend initiating one out-of-region food contract negotiation.",
+      recommended_action: "Monitor + begin AU wheat contract negotiation as diversification",
+      urgency: "medium",
+    },
+    stable: {
+      final_position: "proceed",
+      viability_score: 0.89,
+      pros: [
+        "Food imports at full contracted volumes",
+        "ASEAN FTA pricing competitive vs global spot",
+        "Thailand harvest forecast positive for next 2 quarters",
+      ],
+      cons: ["Routine ASEAN-bloc concentration risk remains"],
+      rationale: "No action needed. Thailand food corridor is cost-efficient and stable.",
+      recommended_action: "Maintain current approach — no intervention required",
+      urgency: "low",
+    },
+  },
+  Indonesia: {
+    disrupted: {
+      final_position: "hold",
+      viability_score: 0.54,
+      pros: [
+        "ASEAN emergency reserve mechanism available",
+        "Indonesia holds largest regional agricultural surplus",
+        "Batam corridor reduces logistics friction",
+      ],
+      cons: [
+        "Q3 domestic elections make export quota commitments unreliable",
+        "Export ban risk on palm oil exists from prior precedent (2022)",
+        "ASEAN reserve mechanism requires multilateral consensus",
+      ],
+      rationale: "Indonesia's political calendar makes firm supply commitments unreliable in the current window. Recommend holding on Indonesia-primary sourcing and activating Australia and Brazil as primary alternatives.",
+      recommended_action: "Hold on Indonesia primary source — activate AU/BR alternatives immediately",
+      urgency: "high",
+    },
+    mild: {
+      final_position: "monitor",
+      viability_score: 0.69,
+      pros: [
+        "Trade volumes within normal seasonal parameters",
+        "Bulog export allocation stable for current quarter",
+        "Batam FTZ logistics corridor operating normally",
+      ],
+      cons: [
+        "Q3 election risk could tighten export quotas with little notice",
+        "Palm oil export ban precedent remains a structural concern",
+      ],
+      rationale: "Stable but politically vulnerable. Recommend monitoring closely as Q3 election approaches and pre-positioning one non-ASEAN food alternative.",
+      recommended_action: "Monitor + pre-position BR soy contract before Q3 election risk window",
+      urgency: "medium",
+    },
+    stable: {
+      final_position: "proceed",
+      viability_score: 0.84,
+      pros: [
+        "Palm oil and rice imports at contracted volumes",
+        "Bilateral relations stable under current administration",
+        "ASEAN FTA pricing competitive",
+      ],
+      cons: ["Structural election-cycle risk requires routine pre-election review"],
+      rationale: "Stable conditions. Routine pre-election supply review recommended 90 days before Indonesian national elections.",
+      recommended_action: "Proceed — schedule pre-election supply risk review in 90 days",
+      urgency: "low",
+    },
+  },
+};
+
 function getMockSynthesis(route) {
-  const isDisrupted = route.status === "disrupted";
-  const isMild = route.status === "mild";
-  if (isDisrupted)
+  const country = route.country;
+  const status = route.status === "disrupted" ? "disrupted"
+    : route.status === "mild" ? "mild"
+    : "stable";
+
+  if (COUNTRY_SYNTHESIS[country]?.[status]) {
+    return COUNTRY_SYNTHESIS[country][status];
+  }
+
+  // Generic fallback by status only
+  if (status === "disrupted")
     return {
       final_position: "conditional",
       viability_score: 0.62,
       pros: [
-        "Alternative suppliers identified in Australia and Thailand",
+        `Alternative suppliers available to replace ${country} volume`,
         "ASEAN diplomatic channel available for back-channel outreach",
         "Strategic reserves provide 45-day supply buffer",
       ],
       cons: [
-        "34% tariff escalation increases procurement costs significantly",
+        `${country} disruption increases procurement costs significantly`,
         "Diversification takes 60–90 days to fully operationalise",
         "Diplomatic resolution timeline remains uncertain",
       ],
-      rationale:
-        "Ministers reached conditional consensus: activate emergency procurement while pursuing quiet diplomacy. The tariff impact is containable given reserve depth, but a diversification programme must begin immediately.",
-      recommended_action:
-        "Dual-track: diplomatic outreach + emergency procurement",
+      rationale: `Conditional consensus: activate emergency procurement from non-${country} sources while pursuing diplomatic resolution. Reserve depth contains short-term risk but diversification must begin immediately.`,
+      recommended_action: `Dual-track: activate alternate suppliers + open ${country} diplomatic channel`,
       urgency: "high",
     };
-  if (isMild)
+  if (status === "mild")
     return {
       final_position: "monitor",
       viability_score: 0.79,
@@ -992,8 +1323,7 @@ function getMockSynthesis(route) {
         "Mild stress could escalate rapidly if unaddressed",
         "Premature action risks diplomatic capital unnecessarily",
       ],
-      rationale:
-        "Ministers advise watchful monitoring with pre-positioned contingency. Current disruption level does not warrant emergency intervention, but 72-hour trigger conditions should be defined now.",
+      rationale: `Watchful monitoring with pre-positioned contingency. Current disruption via ${country} does not warrant emergency intervention, but 72-hour trigger conditions should be defined now.`,
       recommended_action: "Monitor with 72h review cadence + contingency brief",
       urgency: "medium",
     };
@@ -1006,8 +1336,7 @@ function getMockSynthesis(route) {
       "Trade flows at expected seasonal volumes",
     ],
     cons: ["Routine diversification hygiene always advisable"],
-    rationale:
-      "No immediate action required. Ministers unanimously recommend maintaining current approach with standard monitoring protocols in place.",
+    rationale: `No immediate action required. ${country} supply corridor is stable and operating within normal parameters.`,
     recommended_action: "Maintain standard monitoring — no action required",
     urgency: "low",
   };
@@ -1097,158 +1426,294 @@ async function synthesizeDebate(route, goal, newsItems, ministerResults) {
 // ── DecisionSimPanel ───────────────────────────────────────────────────────
 
 const POSITION_META = {
-  proceed: {
-    label: "Proceed",
-    color: "#18A87A",
-    bg: "rgba(24,168,122,0.12)",
-    icon: "✓",
-  },
-  conditional: {
-    label: "Conditional",
-    color: "#F0A020",
-    bg: "rgba(240,160,32,0.12)",
-    icon: "⚡",
-  },
-  monitor: {
-    label: "Monitor",
-    color: "#3090E8",
-    bg: "rgba(48,144,232,0.12)",
-    icon: "◉",
-  },
-  hold: {
-    label: "Hold",
-    color: "#E85550",
-    bg: "rgba(232,85,80,0.1)",
-    icon: "⏸",
-  },
-  abort: {
-    label: "Abort",
-    color: "#E85550",
-    bg: "rgba(232,85,80,0.15)",
-    icon: "✕",
-  },
+  proceed:     { label: "Proceed",     color: "#18A87A", bg: "rgba(24,168,122,0.12)",  icon: "✓" },
+  conditional: { label: "Conditional", color: "#F0A020", bg: "rgba(240,160,32,0.12)",  icon: "⚡" },
+  monitor:     { label: "Monitor",     color: "#3090E8", bg: "rgba(48,144,232,0.12)",  icon: "◉" },
+  hold:        { label: "Hold",        color: "#E85550", bg: "rgba(232,85,80,0.1)",    icon: "⏸" },
+  abort:       { label: "Abort",       color: "#E85550", bg: "rgba(232,85,80,0.15)",   icon: "✕" },
 };
+
+const PHASE_STEPS = ["planning", "round_1", "round_2", "round_3", "ending", "done"];
+
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const SECTOR_SUBSTITUTES = {
+  energy:    ["Qatar",      "Malaysia"],
+  food:      ["Malaysia",   "Thailand"],
+  water:     ["Malaysia",   "Indonesia"],
+  trade:     ["Indonesia",  "India"],
+  diplomacy: ["Australia",  "Japan"],
+};
+
+function getSubstituteCountries(route) {
+  const subs = SECTOR_SUBSTITUTES[route.sector] || ["Malaysia"];
+  if (subs.includes(route.country)) {
+    return [route.country, subs.find((c) => c !== route.country)].filter(Boolean);
+  }
+  return [route.country, subs[0]].filter(Boolean);
+}
+
+function buildDebateResult(country, teamA, teamB, synth) {
+  const fp = synth?.final_position || "conditional";
+  const winnerTeamId = ["proceed", "conditional"].includes(fp) ? "team_a"
+    : fp === "hold" || fp === "abort" ? "team_b"
+    : "team_a";
+  return {
+    session_id: `debate_${Date.now()}_${country.toLowerCase().replace(/\s/g, "_")}`,
+    status: "completed",
+    rounds_completed: 3,
+    winner_team_id: winnerTeamId,
+    final_position: fp,
+    viability_score: synth?.viability_score ?? 0.5,
+    consensus_rationale: synth?.rationale ?? "",
+    recommended_action: synth?.recommended_action ?? "",
+    pros: synth?.pros ?? [],
+    cons: synth?.cons ?? [],
+    urgency: synth?.urgency ?? "medium",
+    team_positions: {
+      team_a: { stance: `Singapore resilience-first — ${teamA?.strategy ?? "supply continuity"}`, final_argument_summary: teamA?.rationale ?? "" },
+      team_b: { stance: `${country} export partnership — ${teamB?.strategy ?? "bilateral deal"}`, final_argument_summary: teamB?.rationale ?? "" },
+    },
+    round_summaries: [
+      {
+        round: 1, winner: "team_a",
+        summary: teamA?.actions?.[0]
+          ? `Team A opened: "${teamA.actions[0].action}". Team B countered with cost-preservation framing.`
+          : "Round 1 debate completed.",
+      },
+      {
+        round: 2, winner: "team_b",
+        summary: teamB?.actions?.[0]
+          ? `Team B pressed its case: "${teamB.actions[0].action}". Team A responded with evidence-backed counter.`
+          : "Round 2 debate completed.",
+      },
+      {
+        round: 3, winner: winnerTeamId,
+        summary: synth?.rationale
+          ? `Final round reached consensus: ${synth.rationale}`
+          : "Round 3 concluded with judge synthesis.",
+      },
+    ],
+  };
+}
 
 function DecisionSimPanel({ route, sectorColor, selectedNewsItems = [] }) {
   const [goals, setGoals] = useState([]);
-  const [phase, setPhase] = useState("idle"); // idle | debating | synthesizing | done
-  const [loadingAgents, setLoadingAgents] = useState({});
-  const [results, setResults] = useState(null);
-  const [synthesis, setSynthesis] = useState(null);
+  const [debatePhase, setDebatePhase] = useState("idle");
+  const [substituteCountries, setSubstituteCountries] = useState([]);
+  const [countryResults, setCountryResults] = useState({});
+  const [activeCountry, setActiveCountry] = useState(null);
+  const [loadingCountries, setLoadingCountries] = useState(new Set());
+  const [teamAData, setTeamAData] = useState({});
+  const [teamBData, setTeamBData] = useState({});
   const [dotCount, setDotCount] = useState(0);
 
-  // Animated dots for loading phases
   useEffect(() => {
-    if (phase === "idle" || phase === "done") return;
+    if (debatePhase === "idle" || debatePhase === "done") return;
     const t = setInterval(() => setDotCount((d) => (d + 1) % 4), 380);
     return () => clearInterval(t);
-  }, [phase]);
+  }, [debatePhase]);
 
-  const runAgents = async (selectedGoal) => {
-    const goalText = selectedGoal.join(", ");
-    setPhase("debating");
-    setResults(null);
-    setSynthesis(null);
-    setLoadingAgents({ trade: true, foreign: true, risk: true });
+  const runDebate = async (selectedGoals) => {
+    const goalText = selectedGoals.join(", ");
+    const countries = getSubstituteCountries(route);
+    setSubstituteCountries(countries);
+    setActiveCountry(countries[0]);
+    setCountryResults({});
+    setTeamAData({});
+    setTeamBData({});
+    setLoadingCountries(new Set(countries));
 
-    const agentResults = {};
+    setDebatePhase("planning");
+    await delay(2200);
+
+    setDebatePhase("round_1");
+    const teamAResults = {};
+    const teamBResults = {};
     await Promise.all(
-      AGENTS.map(async (agent) => {
-        const result = await callDecisionAgent(
-          agent.id,
-          agent.name,
-          agent.objective,
-          route,
-          goalText,
-          selectedNewsItems,
-        );
-        agentResults[agent.id] = result;
-        setLoadingAgents((prev) => ({ ...prev, [agent.id]: false }));
-        setResults((prev) => ({ ...prev, [agent.id]: result }));
+      countries.map(async (country) => {
+        const r = { ...route, country };
+        const [a, b] = await Promise.all([
+          callDecisionAgent("risk", "Risk Agent", "minimize supply chain risk and ensure continuity", r, goalText, selectedNewsItems),
+          callDecisionAgent("trade", "Trade Minister", "maximize export partnership value and bilateral trade", r, goalText, selectedNewsItems),
+        ]);
+        teamAResults[country] = a;
+        teamBResults[country] = b;
+        setTeamAData((prev) => ({ ...prev, [country]: a }));
+        setTeamBData((prev) => ({ ...prev, [country]: b }));
+        setLoadingCountries((prev) => { const next = new Set(prev); next.delete(country); return next; });
       }),
     );
+    await delay(2500); // let round 1 arguments settle
 
-    setPhase("synthesizing");
-    const synth = await synthesizeDebate(
-      route,
-      goalText,
-      selectedNewsItems,
-      agentResults,
+    setDebatePhase("round_2");
+    await delay(3000); // round 2 is UI-only, give user time to read
+
+    setDebatePhase("round_3");
+    const synthResults = {};
+    await Promise.all(
+      countries.map(async (country) => {
+        const r = { ...route, country };
+        const synth = await synthesizeDebate(r, goalText, selectedNewsItems, {
+          trade: teamBResults[country],
+          foreign: teamAResults[country],
+          risk: teamAResults[country],
+        });
+        synthResults[country] = synth;
+      }),
     );
-    setSynthesis(synth);
-    setPhase("done");
+    await delay(2500); // let round 3 synthesis settle
 
-    // Persist to debate history
+    setDebatePhase("ending");
+    await delay(3000);
+
+    const finalResults = {};
+    countries.forEach((c) => {
+      finalResults[c] = buildDebateResult(c, teamAResults[c], teamBResults[c], synthResults[c]);
+    });
+    setCountryResults(finalResults);
+
     try {
       const entry = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        route: {
-          country: route.country,
-          code: route.code,
-          sector: route.sector,
-          status: route.status,
-          note: route.note,
-        },
+        route: { country: route.country, code: route.code, sector: route.sector, status: route.status, note: route.note },
         goal: goalText,
         selectedNewsCount: selectedNewsItems.length,
-        synthesis: synth,
+        synthesis: synthResults[countries[0]],
       };
       const prev = JSON.parse(localStorage.getItem("alore_debates") || "[]");
-      localStorage.setItem(
-        "alore_debates",
-        JSON.stringify([entry, ...prev].slice(0, 50)),
-      );
-    } catch {
-      /* storage unavailable */
-    }
+      localStorage.setItem("alore_debates", JSON.stringify([entry, ...prev].slice(0, 50)));
+    } catch { /* storage unavailable */ }
+
+    setDebatePhase("done");
   };
 
   const dots = "·".repeat(dotCount);
+  const currentPhaseIndex = PHASE_STEPS.indexOf(debatePhase);
+  const roundNumber = debatePhase.startsWith("round_") ? parseInt(debatePhase.split("_")[1]) : null;
+  const activeTeamA = teamAData[activeCountry];
+  const activeTeamB = teamBData[activeCountry];
+  const isCountryLoading = loadingCountries.has(activeCountry);
+
+  // ── Phase Timeline ─────────────────────────────────────────────────────────
+  const PhaseTimeline = () => (
+    <div style={{ display: "flex", alignItems: "center", padding: "16px 18px 14px" }}>
+      {PHASE_STEPS.map((step, i) => {
+        const label = step === "planning" ? "Plan"
+          : step === "ending" ? "End"
+          : step === "done" ? "Results"
+          : `Round ${step.split("_")[1]}`;
+        const isDone = currentPhaseIndex > i;
+        const isActive = currentPhaseIndex === i;
+        return (
+          <React.Fragment key={step}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%",
+                background: isDone || isActive ? sectorColor : "rgba(45,58,82,0.08)",
+                border: `1.5px solid ${isDone || isActive ? sectorColor : "rgba(45,58,82,0.15)"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: isActive ? `0 0 0 4px ${sectorColor}22` : "none",
+                transition: "all 0.4s",
+              }}>
+                {isDone
+                  ? <span style={{ fontSize: 10, color: "#fff", fontWeight: 800 }}>✓</span>
+                  : isActive
+                  ? <span style={{ fontSize: 8, color: "#fff", fontWeight: 800 }}>●</span>
+                  : null}
+              </div>
+              <span style={{
+                fontSize: 8.5, fontWeight: isActive ? 800 : 600, whiteSpace: "nowrap",
+                color: isDone || isActive ? sectorColor : "rgba(45,58,82,0.3)",
+                transition: "all 0.4s",
+              }}>{label}</span>
+            </div>
+            {i < PHASE_STEPS.length - 1 && (
+              <div style={{
+                flex: 1, height: 1.5, minWidth: 6, marginBottom: 16,
+                background: currentPhaseIndex > i ? sectorColor : "rgba(45,58,82,0.1)",
+                transition: "background 0.4s",
+              }} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+
+  // ── Country Tabs ───────────────────────────────────────────────────────────
+  const CountryTabs = () => (
+    <div style={{ display: "flex", gap: 4, padding: "0 18px 12px" }}>
+      {substituteCountries.map((c) => {
+        const isActive = c === activeCountry;
+        const isDone = !!countryResults[c];
+        const routeEntry = ROUTES.find((r) => r.country === c);
+        return (
+          <button key={c} onClick={() => setActiveCountry(c)} style={{
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "5px 11px",
+            background: isActive ? sectorColor + "12" : "transparent",
+            border: `1px solid ${isActive ? sectorColor + "44" : "rgba(45,58,82,0.1)"}`,
+            borderRadius: 8, cursor: "pointer", fontFamily: "'Inter',sans-serif",
+            transition: "all 0.2s",
+          }}>
+            <span style={{ fontSize: 13 }}>{FLAGS[routeEntry?.code] || "🌍"}</span>
+            <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? sectorColor : "rgba(45,58,82,0.55)" }}>{c}</span>
+            {isDone && <span style={{ fontSize: 9, color: "#18A87A", fontWeight: 800 }}>✓</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // ── Argument card (with shimmer skeleton) ─────────────────────────────────
+  const ArgumentCard = ({ teamLabel, stance, argument, isLoading }) => (
+    <div style={{
+      padding: "12px 14px", background: "#FDFCFA",
+      border: "1px solid rgba(45,58,82,0.1)", borderRadius: 10,
+    }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.35)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+        {teamLabel}
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: sectorColor, marginBottom: 7, lineHeight: 1.3 }}>
+        {stance}
+      </div>
+      {isLoading ? (
+        <div>
+          {[82, 96, 64].map((w, i) => (
+            <div key={i} style={{
+              height: 9, borderRadius: 5, marginBottom: 6, width: `${w}%`,
+              background: "linear-gradient(90deg, rgba(45,58,82,0.07) 25%, rgba(45,58,82,0.13) 50%, rgba(45,58,82,0.07) 75%)",
+              backgroundSize: "200px 100%", animation: "shimmer 1.4s infinite",
+            }} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: 11.5, color: "rgba(45,58,82,0.72)", lineHeight: 1.55 }}>
+          {argument}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div style={{ flexShrink: 0 }}>
-      {/* ── Goal selector (idle phase only) ── */}
-      {phase === "idle" && (
+
+      {/* ── Idle: goal selector ── */}
+      {debatePhase === "idle" && (
         <div style={{ padding: "18px 18px 16px" }}>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 800,
-              color: "rgba(45,58,82,0.3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.12em",
-              marginBottom: 6,
-            }}
-          >
+          <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>
             Decision Simulation
           </div>
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: 700,
-              color: "#2D3A52",
-              letterSpacing: "-0.01em",
-              marginBottom: 5,
-            }}
-          >
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#2D3A52", letterSpacing: "-0.01em", marginBottom: 5 }}>
             What do you want to optimise?
           </div>
-          <div
-            style={{
-              fontSize: 11.5,
-              color: "rgba(45,58,82,0.48)",
-              marginBottom: 16,
-              lineHeight: 1.5,
-            }}
-          >
-            Select one or more goals. Three AI ministers will debate and balance
-            these priorities into a consensus strategy
+          <div style={{ fontSize: 11.5, color: "rgba(45,58,82,0.48)", marginBottom: 16, lineHeight: 1.5 }}>
+            Select one or more goals. Two debate teams will argue across substitute countries and a judge will synthesise a consensus strategy
             {selectedNewsItems.length > 0 && (
               <span style={{ color: sectorColor, fontWeight: 600 }}>
-                {" "}
-                {selectedNewsItems.length} signal
-                {selectedNewsItems.length !== 1 ? "s" : ""} included.
+                {" "}{selectedNewsItems.length} signal{selectedNewsItems.length !== 1 ? "s" : ""} included.
               </span>
             )}
           </div>
@@ -1256,36 +1721,18 @@ function DecisionSimPanel({ route, sectorColor, selectedNewsItems = [] }) {
             {GOALS.map((g) => {
               const isActive = goals.includes(g.id);
               return (
-                <button
-                  key={g.id}
-                  onClick={() =>
-                    setGoals((prev) =>
-                      prev.includes(g.id)
-                        ? prev.filter((id) => id !== g.id)
-                        : [...prev, g.id],
-                    )
-                  }
+                <button key={g.id}
+                  onClick={() => setGoals((prev) => prev.includes(g.id) ? prev.filter((id) => id !== g.id) : [...prev, g.id])}
                   style={{
-                    flex: 1,
-                    padding: "12px 6px",
-                    background: isActive
-                      ? sectorColor + "18"
-                      : "rgba(45,58,82,0.04)",
+                    flex: 1, padding: "12px 6px",
+                    background: isActive ? sectorColor + "18" : "rgba(45,58,82,0.04)",
                     border: `1.5px solid ${isActive ? sectorColor : "rgba(45,58,82,0.1)"}`,
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontWeight: 700,
+                    borderRadius: 10, fontSize: 11, fontWeight: 700,
                     color: isActive ? sectorColor : "rgba(45,58,82,0.52)",
-                    cursor: "pointer",
-                    fontFamily: "'Inter',sans-serif",
-                    transition: "all 0.16s",
-                    lineHeight: 1.3,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
+                    cursor: "pointer", fontFamily: "'Inter',sans-serif",
+                    transition: "all 0.16s", lineHeight: 1.3,
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                  }}>
                   <span style={{ fontSize: 20 }}>{g.icon}</span>
                   <span>{g.label}</span>
                 </button>
@@ -1294,20 +1741,12 @@ function DecisionSimPanel({ route, sectorColor, selectedNewsItems = [] }) {
           </div>
           {goals.length > 0 && (
             <button
-              onClick={() => runAgents(goals)}
+              onClick={() => runDebate(goals)}
               style={{
-                width: "100%",
-                padding: "13px",
-                background: sectorColor,
-                border: "none",
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#fff",
-                cursor: "pointer",
-                fontFamily: "'Inter',sans-serif",
-                letterSpacing: "0.01em",
-                transition: "opacity 0.15s",
+                width: "100%", padding: "13px", background: sectorColor,
+                border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700,
+                color: "#fff", cursor: "pointer", fontFamily: "'Inter',sans-serif",
+                letterSpacing: "0.01em", transition: "opacity 0.15s",
                 animation: "panelIn 0.22s ease both",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.86")}
@@ -1319,591 +1758,273 @@ function DecisionSimPanel({ route, sectorColor, selectedNewsItems = [] }) {
         </div>
       )}
 
-      {/* ── Debating / Synthesising animation ── */}
-      {(phase === "debating" || phase === "synthesizing") && (
-        <div style={{ padding: "22px 18px 24px" }}>
-          {/* Animated orb + label */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginBottom: 22,
-            }}
-          >
-            <div
-              style={{
-                position: "relative",
-                width: 40,
-                height: 40,
-                flexShrink: 0,
-              }}
-            >
-              {/* Ripple rings */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -8,
-                  borderRadius: "50%",
-                  border: `1.5px solid ${sectorColor}33`,
-                  animation: "pulse 1.6s ease-in-out infinite",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -2,
-                  borderRadius: "50%",
-                  border: `1.5px solid ${sectorColor}55`,
-                  animation: "pulse 1.6s ease-in-out 0.3s infinite",
-                }}
-              />
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  background: `linear-gradient(135deg, ${sectorColor}22 0%, ${sectorColor}44 100%)`,
-                  border: `1.5px solid ${sectorColor}66`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span style={{ fontSize: 18 }}>
-                  {phase === "synthesizing" ? "⚡" : "💬"}
-                </span>
-              </div>
+      {/* ── Phase timeline (all non-idle phases) ── */}
+      {debatePhase !== "idle" && <PhaseTimeline />}
+
+      {/* ── Planning phase ── */}
+      {debatePhase === "planning" && (
+        <div style={{ padding: "0 18px 20px", animation: "panelIn 0.3s ease both" }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>
+            Debate Structure
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+            <div style={{ padding: "10px 12px", background: "rgba(45,58,82,0.04)", border: "1px solid rgba(45,58,82,0.1)", borderRadius: 10 }}>
+              <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.4)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Team A</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#2D3A52", marginBottom: 3 }}>Singapore</div>
+              <div style={{ fontSize: 10.5, color: "rgba(45,58,82,0.5)", lineHeight: 1.4 }}>Resilience-first — ensure supply continuity</div>
             </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 800,
-                  color: "#2D3A52",
-                  letterSpacing: "-0.02em",
-                  lineHeight: 1.2,
-                }}
-              >
-                {phase === "synthesizing" ? "Synthesising" : "Debating"}
-                <span
-                  style={{
-                    color: sectorColor,
-                    minWidth: 24,
-                    display: "inline-block",
-                  }}
-                >
-                  {dots}
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: 11.5,
-                  color: "rgba(45,58,82,0.45)",
-                  marginTop: 3,
-                }}
-              >
-                {phase === "synthesizing"
-                  ? "Consolidating minister positions into a consensus report"
-                  : `3 ministers analysing ${selectedNewsItems.length > 0 ? `${selectedNewsItems.length} signal${selectedNewsItems.length !== 1 ? "s" : ""}` : "the situation"}`}
-              </div>
+            <div style={{ padding: "10px 12px", background: sectorColor + "08", border: `1px solid ${sectorColor}22`, borderRadius: 10 }}>
+              <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.4)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Team B</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#2D3A52", marginBottom: 3 }}>{substituteCountries.join(" / ")}</div>
+              <div style={{ fontSize: 10.5, color: "rgba(45,58,82,0.5)", lineHeight: 1.4 }}>Export partnership — bilateral trade value</div>
             </div>
           </div>
-
-          {/* Minister status rows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {AGENTS.map((agent) => {
-              const isDone = !loadingAgents[agent.id] && results?.[agent.id];
-              const isActive = loadingAgents[agent.id];
-              return (
-                <div
-                  key={agent.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "10px 14px",
-                    background: isDone
-                      ? "rgba(24,168,122,0.05)"
-                      : isActive
-                        ? sectorColor + "07"
-                        : "rgba(45,58,82,0.03)",
-                    border: `1px solid ${isDone ? "rgba(24,168,122,0.18)" : isActive ? sectorColor + "22" : "rgba(45,58,82,0.07)"}`,
-                    borderRadius: 10,
-                    transition: "all 0.4s",
-                  }}
-                >
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>
-                    {agent.icon}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: isDone ? "#18A87A" : "rgba(45,58,82,0.7)",
-                        transition: "color 0.3s",
-                      }}
-                    >
-                      {agent.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "rgba(45,58,82,0.38)",
-                        marginTop: 1,
-                      }}
-                    >
-                      {isDone
-                        ? results[agent.id].strategy
-                        : isActive
-                          ? `Analysing${dots}`
-                          : "Waiting"}
-                    </div>
-                  </div>
-                  {isDone && (
-                    <div
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: "50%",
-                        background: "rgba(24,168,122,0.15)",
-                        border: "1.5px solid rgba(24,168,122,0.4)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        animation: "panelIn 0.25s ease both",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 11,
-                          color: "#18A87A",
-                          fontWeight: 800,
-                        }}
-                      >
-                        ✓
-                      </span>
-                    </div>
-                  )}
-                  {isActive && (
-                    <div
-                      style={{
-                        width: 16,
-                        height: 16,
-                        border: `2px solid ${sectorColor}33`,
-                        borderTopColor: sectorColor,
-                        borderRadius: "50%",
-                        animation: "debateSpin 0.75s linear infinite",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                </div>
-              );
-            })}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: sectorColor + "0a", border: `1px solid ${sectorColor}22`, borderRadius: 10 }}>
+            <div style={{ width: 14, height: 14, border: `2px solid ${sectorColor}44`, borderTopColor: sectorColor, borderRadius: "50%", animation: "debateSpin 0.75s linear infinite", flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: sectorColor, fontWeight: 600 }}>
+              Structuring debate for {substituteCountries.length} countr{substituteCountries.length === 1 ? "y" : "ies"}{dots}
+            </span>
           </div>
-
-          {phase === "synthesizing" && (
-            <div
-              style={{
-                marginTop: 14,
-                padding: "10px 14px",
-                background: sectorColor + "0a",
-                border: `1px solid ${sectorColor}22`,
-                borderRadius: 10,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                animation: "panelIn 0.3s ease both",
-              }}
-            >
-              <div
-                style={{
-                  width: 14,
-                  height: 14,
-                  border: `2px solid ${sectorColor}33`,
-                  borderTopColor: sectorColor,
-                  borderRadius: "50%",
-                  animation: "debateSpin 0.75s linear infinite",
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{ fontSize: 11, color: sectorColor, fontWeight: 600 }}
-              >
-                Building consensus report{dots}
-              </span>
-            </div>
-          )}
         </div>
       )}
 
-      {/* ── Synthesis report (done phase) ── */}
-      {phase === "done" &&
-        synthesis &&
-        (() => {
-          const pos =
-            POSITION_META[synthesis.final_position] ||
-            POSITION_META.conditional;
-          const score = Math.max(
-            0,
-            Math.min(1, synthesis.viability_score || 0),
-          );
-          const urgencyColor =
-            { low: "#18A87A", medium: "#F0A020", high: "#E85550" }[
-              synthesis.urgency
-            ] || sectorColor;
-          return (
-            <div
-              style={{
-                padding: "20px 18px 22px",
-                animation: "panelIn 0.4s ease both",
-              }}
-            >
-              {/* Report header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 16,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: "rgba(45,58,82,0.3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.12em",
-                  }}
-                >
-                  Debate Summary
-                </div>
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    color: urgencyColor,
-                    background: urgencyColor + "18",
-                    border: `1px solid ${urgencyColor}33`,
-                    borderRadius: 20,
-                    padding: "2px 9px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                  }}
-                >
-                  {synthesis.urgency} urgency
-                </div>
+      {/* ── Round phases ── */}
+      {debatePhase.startsWith("round_") && (
+        <div style={{ animation: "panelIn 0.3s ease both" }}>
+          {substituteCountries.length > 1 && <CountryTabs />}
+          <div style={{ padding: "12px 18px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                Round {roundNumber} · {activeCountry}
               </div>
+              {isCountryLoading && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 10, height: 10, border: `1.5px solid ${sectorColor}44`, borderTopColor: sectorColor, borderRadius: "50%", animation: "debateSpin 0.75s linear infinite" }} />
+                  <span style={{ fontSize: 9.5, color: sectorColor, fontWeight: 600 }}>Agents debating{dots}</span>
+                </div>
+              )}
+            </div>
 
-              {/* Verdict badge */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  marginBottom: 16,
-                  padding: "14px 16px",
-                  background: pos.bg,
-                  border: `1.5px solid ${pos.color}44`,
-                  borderRadius: 12,
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: pos.color + "22",
-                    border: `1.5px solid ${pos.color}55`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <span
-                    style={{ fontSize: 16, fontWeight: 800, color: pos.color }}
-                  >
-                    {pos.icon}
+            <ArgumentCard
+              teamLabel="Team A · Singapore"
+              stance="Resilience-first — ensure supply continuity"
+              argument={activeTeamA ? `${activeTeamA.strategy}. ${activeTeamA.rationale}` : ""}
+              isLoading={isCountryLoading}
+            />
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0" }}>
+              <div style={{ flex: 1, height: 1, background: "rgba(45,58,82,0.08)" }} />
+              <span style={{ fontSize: 9.5, color: "rgba(45,58,82,0.3)", fontWeight: 600, letterSpacing: "0.06em" }}>↕ responds</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(45,58,82,0.08)" }} />
+            </div>
+
+            <ArgumentCard
+              teamLabel={`Team B · ${activeCountry || ""}`}
+              stance="Export partnership — bilateral trade value"
+              argument={activeTeamB ? `${activeTeamB.strategy}. ${activeTeamB.rationale}` : ""}
+              isLoading={isCountryLoading}
+            />
+
+            {!isCountryLoading && activeTeamA && roundNumber > 1 && (
+              <div style={{
+                marginTop: 10, padding: "10px 14px",
+                background: "rgba(45,58,82,0.03)", border: "1px solid rgba(45,58,82,0.08)",
+                borderRadius: 10, animation: "panelIn 0.25s ease both",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.35)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    Round {roundNumber - 1} verdict
+                  </span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: "2px 8px",
+                    background: roundNumber === 2 ? "rgba(24,168,122,0.12)" : sectorColor + "15",
+                    color: roundNumber === 2 ? "#18A87A" : sectorColor,
+                    border: `1px solid ${roundNumber === 2 ? "rgba(24,168,122,0.25)" : sectorColor + "33"}`,
+                    borderRadius: 20,
+                  }}>
+                    {roundNumber === 2 ? "Team A leads" : "Teams close"}
                   </span>
                 </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: pos.color,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.12em",
-                      marginBottom: 3,
-                    }}
-                  >
-                    Final Position
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 800,
-                      color: pos.color,
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {pos.label}
-                  </div>
+                <div style={{ fontSize: 11, color: "rgba(45,58,82,0.6)", lineHeight: 1.5 }}>
+                  {roundNumber === 2
+                    ? (activeTeamA?.tradeoff || "Team A established resilience case. Team B building counter-position.")
+                    : (activeTeamB?.tradeoff || "Both teams have advanced strong positions. Judge preparing synthesis.")}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Ending phase ── */}
+      {debatePhase === "ending" && (
+        <div style={{ padding: "28px 18px 32px", display: "flex", flexDirection: "column", alignItems: "center", animation: "panelIn 0.3s ease both" }}>
+          <div style={{
+            width: 60, height: 60, borderRadius: "50%",
+            background: sectorColor + "10", border: `2px solid ${sectorColor}33`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            marginBottom: 16, boxShadow: `0 0 0 8px ${sectorColor}0a`,
+            animation: "pulse 1.8s ease-in-out infinite",
+          }}>
+            <span style={{ fontSize: 26 }}>⚖</span>
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: "#2D3A52", letterSpacing: "-0.02em", marginBottom: 6, textAlign: "center" }}>
+            Synthesising final verdict<span style={{ color: sectorColor }}>{dots}</span>
+          </div>
+          <div style={{ fontSize: 11.5, color: "rgba(45,58,82,0.45)", textAlign: "center", lineHeight: 1.5 }}>
+            Judge reviewing all rounds across {substituteCountries.length} countr{substituteCountries.length === 1 ? "y" : "ies"}
+          </div>
+        </div>
+      )}
+
+      {/* ── Done: results ── */}
+      {debatePhase === "done" && (() => {
+        const result = countryResults[activeCountry];
+        if (!result) return null;
+        const pos = POSITION_META[result.final_position] || POSITION_META.conditional;
+        const score = Math.max(0, Math.min(1, result.viability_score || 0));
+        const urgencyColor = { low: "#18A87A", medium: "#F0A020", high: "#E85550" }[result.urgency] || sectorColor;
+        return (
+          <div style={{ animation: "panelIn 0.4s ease both" }}>
+            {substituteCountries.length > 1 && <CountryTabs />}
+            <div style={{ padding: "18px 18px 22px" }}>
+
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                  Debate Summary · {activeCountry}
+                </div>
+                <div style={{
+                  marginLeft: "auto", fontSize: 9, fontWeight: 700, color: urgencyColor,
+                  background: urgencyColor + "18", border: `1px solid ${urgencyColor}33`,
+                  borderRadius: 20, padding: "2px 9px", textTransform: "uppercase", letterSpacing: "0.08em",
+                }}>
+                  {result.urgency} urgency
                 </div>
               </div>
 
-              {/* Pros / Cons */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 10,
-                  marginBottom: 14,
-                }}
-              >
-                {/* Pros */}
-                <div
-                  style={{
-                    padding: "12px 13px",
-                    background: "rgba(24,168,122,0.06)",
-                    border: "1px solid rgba(24,168,122,0.15)",
-                    borderRadius: 10,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: "#18A87A",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Pros
+              {/* Verdict badge + viability bar */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 12, marginBottom: 14,
+                padding: "14px 16px", background: pos.bg,
+                border: `1.5px solid ${pos.color}44`, borderRadius: 12,
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: pos.color + "22", border: `1.5px solid ${pos.color}55`,
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: pos.color }}>{pos.icon}</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: pos.color, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 }}>Final Position</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: pos.color, letterSpacing: "-0.02em", lineHeight: 1 }}>{pos.label}</div>
+                </div>
+                <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Viability</div>
+                  <div style={{ width: 80, height: 6, background: "rgba(45,58,82,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${score * 100}%`, height: "100%", background: pos.color, borderRadius: 3, transition: "width 0.8s ease" }} />
                   </div>
-                  {synthesis.pros?.map((p, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        gap: 7,
-                        marginBottom: 6,
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "#18A87A",
-                          flexShrink: 0,
-                          marginTop: 1,
-                          fontWeight: 700,
-                        }}
-                      >
-                        ✓
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          color: "rgba(45,58,82,0.75)",
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        {p}
-                      </span>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: pos.color, marginTop: 3 }}>{Math.round(score * 100)}%</div>
+                </div>
+              </div>
+
+              {/* Round scorecard */}
+              {result.round_summaries?.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>Round Scorecard</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {result.round_summaries.map((rs) => (
+                      <div key={rs.round} style={{
+                        display: "flex", alignItems: "flex-start", gap: 10,
+                        padding: "8px 12px", background: "rgba(45,58,82,0.03)",
+                        border: "1px solid rgba(45,58,82,0.08)", borderRadius: 8,
+                      }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, minWidth: 48, paddingTop: 1 }}>
+                          Round {rs.round}
+                        </span>
+                        <span style={{
+                          fontSize: 8.5, fontWeight: 700, padding: "1px 7px", flexShrink: 0, marginTop: 1,
+                          background: rs.winner === "team_a" ? "rgba(24,168,122,0.12)" : sectorColor + "15",
+                          color: rs.winner === "team_a" ? "#18A87A" : sectorColor,
+                          border: `1px solid ${rs.winner === "team_a" ? "rgba(24,168,122,0.25)" : sectorColor + "33"}`,
+                          borderRadius: 20,
+                        }}>
+                          {rs.winner === "team_a" ? "Team A" : "Team B"}
+                        </span>
+                        <span style={{ fontSize: 10.5, color: "rgba(45,58,82,0.58)", lineHeight: 1.45 }}>{rs.summary}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pros / Cons */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ padding: "12px 13px", background: "rgba(24,168,122,0.06)", border: "1px solid rgba(24,168,122,0.15)", borderRadius: 10 }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: "#18A87A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Pros</div>
+                  {result.pros?.map((p, i) => (
+                    <div key={i} style={{ display: "flex", gap: 7, marginBottom: 6, alignItems: "flex-start" }}>
+                      <span style={{ fontSize: 10, color: "#18A87A", flexShrink: 0, marginTop: 1, fontWeight: 700 }}>✓</span>
+                      <span style={{ fontSize: 10.5, color: "rgba(45,58,82,0.75)", lineHeight: 1.45 }}>{p}</span>
                     </div>
                   ))}
                 </div>
-                {/* Cons */}
-                <div
-                  style={{
-                    padding: "12px 13px",
-                    background: "rgba(232,85,80,0.05)",
-                    border: "1px solid rgba(232,85,80,0.15)",
-                    borderRadius: 10,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: "#E85550",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Cons
-                  </div>
-                  {synthesis.cons?.map((c, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        gap: 7,
-                        marginBottom: 6,
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "#E85550",
-                          flexShrink: 0,
-                          marginTop: 1,
-                          fontWeight: 700,
-                        }}
-                      >
-                        ✕
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          color: "rgba(45,58,82,0.75)",
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        {c}
-                      </span>
+                <div style={{ padding: "12px 13px", background: "rgba(232,85,80,0.05)", border: "1px solid rgba(232,85,80,0.15)", borderRadius: 10 }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: "#E85550", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Cons</div>
+                  {result.cons?.map((c, i) => (
+                    <div key={i} style={{ display: "flex", gap: 7, marginBottom: 6, alignItems: "flex-start" }}>
+                      <span style={{ fontSize: 10, color: "#E85550", flexShrink: 0, marginTop: 1, fontWeight: 700 }}>✕</span>
+                      <span style={{ fontSize: 10.5, color: "rgba(45,58,82,0.75)", lineHeight: 1.45 }}>{c}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Rationale */}
-              <div
-                style={{
-                  padding: "12px 14px",
-                  background: "rgba(45,58,82,0.04)",
-                  border: "1px solid rgba(45,58,82,0.08)",
-                  borderRadius: 10,
-                  marginBottom: 12,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: "rgba(45,58,82,0.3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: 6,
-                  }}
-                >
-                  Consensus Rationale
-                </div>
-                <div
-                  style={{
-                    fontSize: 12.5,
-                    color: "rgba(45,58,82,0.78)",
-                    lineHeight: 1.6,
-                    fontStyle: "italic",
-                  }}
-                >
-                  "{synthesis.rationale}"
+              <div style={{ padding: "12px 14px", background: "rgba(45,58,82,0.04)", border: "1px solid rgba(45,58,82,0.08)", borderRadius: 10, marginBottom: 12 }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: "rgba(45,58,82,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Consensus Rationale</div>
+                <div style={{ fontSize: 12.5, color: "rgba(45,58,82,0.78)", lineHeight: 1.6, fontStyle: "italic" }}>
+                  "{result.consensus_rationale}"
                 </div>
               </div>
 
               {/* Recommended action */}
-              {synthesis.recommended_action && (
-                <div
-                  style={{
-                    padding: "12px 14px",
-                    background: pos.color + "10",
-                    border: `1.5px solid ${pos.color}33`,
-                    borderRadius: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
+              {result.recommended_action && (
+                <div style={{ padding: "12px 14px", background: pos.color + "10", border: `1.5px solid ${pos.color}33`, borderRadius: 10, display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 16, flexShrink: 0 }}>→</span>
                   <div>
-                    <div
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 800,
-                        color: pos.color,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.1em",
-                        marginBottom: 3,
-                      }}
-                    >
-                      Recommended Action
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: "rgba(45,58,82,0.85)",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {synthesis.recommended_action}
-                    </div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: pos.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Recommended Action</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "rgba(45,58,82,0.85)", lineHeight: 1.4 }}>{result.recommended_action}</div>
                   </div>
                 </div>
               )}
 
               {/* Footer */}
-              <div
-                style={{
-                  marginTop: 14,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <div style={{ display: "flex", gap: 5 }}>
-                  {AGENTS.map((a) => (
-                    <span key={a.id} style={{ fontSize: 14 }}>
-                      {a.icon}
-                    </span>
-                  ))}
-                </div>
+              <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: "rgba(45,58,82,0.32)" }}>
-                  3 agents consulted · {selectedNewsItems.length} signal
-                  {selectedNewsItems.length !== 1 ? "s" : ""} analysed
+                  2 debate teams · {substituteCountries.length} countr{substituteCountries.length === 1 ? "y" : "ies"} · {selectedNewsItems.length} signal{selectedNewsItems.length !== 1 ? "s" : ""} analysed
                 </span>
                 <button
-                  onClick={() => {
-                    setPhase("idle");
-                    setGoals([]);
-                    setSynthesis(null);
-                    setResults(null);
-                  }}
+                  onClick={() => { setDebatePhase("idle"); setGoals([]); setCountryResults({}); setSubstituteCountries([]); setTeamAData({}); setTeamBData({}); }}
                   style={{
-                    marginLeft: "auto",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "rgba(45,58,82,0.45)",
-                    background: "transparent",
-                    border: "1px solid rgba(45,58,82,0.15)",
-                    borderRadius: 7,
-                    padding: "4px 10px",
-                    cursor: "pointer",
-                    fontFamily: "'Inter',sans-serif",
+                    marginLeft: "auto", fontSize: 10, fontWeight: 600,
+                    color: "rgba(45,58,82,0.45)", background: "transparent",
+                    border: "1px solid rgba(45,58,82,0.15)", borderRadius: 7,
+                    padding: "4px 10px", cursor: "pointer", fontFamily: "'Inter',sans-serif",
                   }}
                 >
                   Restart
                 </button>
               </div>
             </div>
-          );
-        })()}
+          </div>
+        );
+      })()}
 
       <style>{`
-        @keyframes debateSpin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
+        @keyframes debateSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
       `}</style>
     </div>
   );
@@ -1993,7 +2114,10 @@ export default function SGDashboard({ onNavigate = () => {} }) {
       )
     : [];
   const relatedNews = selectedRoute
-    ? NEWS.filter((n) => n.tag === selectedRoute.sector)
+    ? (() => {
+        const sectorNews = NEWS.filter((n) => n.tag === selectedRoute.sector);
+        return sectorNews.length > 0 ? sectorNews : NEWS;
+      })()
     : [];
 
   const codes = Object.keys(grouped);
