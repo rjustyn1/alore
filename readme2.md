@@ -156,16 +156,6 @@ A policy analyst asks: *"What if China restricts rare earth exports for 12 month
 
 ---
 
-### **Scenario 3: Monitoring — Natural Disaster Supply Shock**
-A hurricane hits a region producing 30% of Singapore's imported wheat.
-- **ALORE detects**: News of harvest damage + LLM links to Singapore supply chain data
-- **Severity assigned**: `DISRUPTED` (food security threat)
-- **Historical context**: Event consolidated with prior similar events, showing pattern frequency
-- **Action triggered**: Food authority activates alternative sourcing agreements
-- **Value**: Automated detection + pattern visibility improves resilience planning
-
----
-
 ## Technology Foundation
 
 - **Backend**: FastAPI (Python) - fast, scalable API layer
