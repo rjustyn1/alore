@@ -220,6 +220,18 @@ This section elaborates on the two core capabilities: **reactive disruption resp
 
 ---
 
+### Architecture Diagrams
+
+**Reactive Flow: Negotiation Architecture**
+
+![ALORE Reactive Negotiation Architecture](docs/img/Negotiation%20Architecture.jpeg)
+
+**Proactive Flow: Scenario Simulation Architecture**
+
+![ALORE Scenario Simulation Architecture](docs/img/Scenario%20Simulation%20Architecture.jpeg)
+
+---
+
 ### Key Feature 1: Reactive Flow — Real-Time Disruption Response
 
 This feature corresponds to the pipeline that starts from a disruption event and ends with a data-backed recommendation on which trade partner to engage first.
