@@ -437,7 +437,7 @@ It allows the system to:
 
 ---
 
-## Key Features
+## All Features
 
 | Feature | Benefit |
 |---------|---------|
