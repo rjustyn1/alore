@@ -5,40 +5,16 @@
 ALORE is an **intelligent supply chain monitoring and intelligence platform** designed to help Singapore anticipate, monitor, and respond to global disruptions that threaten critical imports—food, energy, and essential commodities.
 
 The platform automatically:
-- **Tracks** Singapore's supply chain dependencies (where goods come from, what commodities are at risk)
-- **Monitors** global disruption events in real-time (political instability, natural disasters, trade conflicts)
-- **Curates** relevant news and signals that impact Singapore's supply security
-- **Alerts** decision-makers with severity-ranked intelligence when disruptions occur
-
----
-
-## Business Value
-
-### 1. **Risk Mitigation**
-- **Identify vulnerabilities early**: Know which suppliers, countries, and commodities pose the highest risk
-- **Reduce supply chain shocks**: Early warning enables proactive sourcing, inventory adjustments, and contingency planning
-- **Protect critical sectors**: Ensure food security, energy stability, and essential goods availability
-
-### 2. **Strategic Decision Support**
-- **Evidence-based planning**: Data-driven intelligence for trade negotiations, supplier diversification, and strategic reserves
-- **Policy informed by reality**: Supply chain visibility and predictive modeling informs national resilience policies
-- **Cross-agency coordination**: Centralized intelligence platform for government agencies to share insights
-
-### 3. **Operational Efficiency**
-- **Automated intelligence gathering**: Continuous monitoring reduces manual research burden
-- **Fast signal detection**: LLM-powered classification flags high-severity disruptions immediately
-- **Reduced false positives**: Intelligent deduplication and consolidation filters noise, surfaces only meaningful events
-
-### 4. **Competitive Advantage**
-- **Market knowledge**: Understanding supply chain shifts before competitors enables faster adaptation
-- **Procurement optimization**: Negotiate from position of strength with better visibility into market conditions
-- **Investor confidence**: Demonstrate supply chain resilience to stakeholders and markets
+- **Tracks** Singapore supply chain dependencies (where goods come from, what commodities are at risk)
+- **Monitors** global disruption events in real-time (political instability, natural disasters, trade conflicts), and alerts when disruptions occur
+- **Reactive Mode**: If a disruption is detected, triggers simulation (can be controlled by the user)
+- **Proactive Mode**: Generates "what-if" simulations to anticipate potential disruptions
 
 ---
 
 ## How ALORE Works
 
-### **Current Modules (Phase 1)**
+### **Current Modules**
 
 #### 🌍 **Supply Chain Connections Scraper**
 **What it does**: Maps Singapore's import dependencies
@@ -83,17 +59,44 @@ The platform automatically:
 
 ---
 
-## Key Features
+#### 🤝 **Reactive Flow — Pre-Negotiation Simulation**
+**What it does**: Runs intelligent trade negotiation simulations when a disruption is detected
 
-| Feature | Benefit |
-|---------|---------|
-| **Real-time Monitoring** | Continuous 24/7 event detection—no manual scanning required |
-| **Severity Ranking** | Focus on what matters: `CRITICAL` and `DISRUPTED` events get priority |
-| **Historical Tracking** | Build knowledge of patterns, repeating risks, and seasonal vulnerabilities |
-| **Deduplication & Consolidation** | One unified event record prevents duplicate alerts and confusion |
-| **Multi-source Intelligence** | Evidence from multiple reputable sources increases confidence in signals |
-| **Supply Chain Context** | News curator understands Singapore's supply dependencies—flags relevant events automatically |
-| **LLM-Powered Classification** | Semantic understanding of disruption context (not just keyword matching) |
+- Triggered automatically when a disruption event is identified
+- Prepares country-specific intelligence packets (scraper → knowledge base → RAG → planning agent)
+- Launches parallel negotiation simulations: Singapore Agent vs. each candidate supplier country
+- A judge agent evaluates each negotiation track for viability and trade-offs
+- Aggregates all outcomes into a single recommendation: best partner, trade-off comparison, and next steps
+
+**Business use**: Move from disruption detection to actionable partner recommendation—test negotiation outcomes before engaging real trading partners
+
+---
+
+#### 🎯 **Proactive Flow — What-If Scenario Simulation**
+**What it does**: Models hypothetical disruptions and simulates cascading consequences before they happen
+
+- Accepts user-defined hypothetical scenarios (e.g., "What if Country X closes ports for 6 months?")
+- Runs a stateful simulation engine with propagation rules, event queues, and confidence scoring
+- Agent layer proposes claims, requests evidence, and challenges weak hypotheses
+- Evidence layer grounds the simulation with real-world data via TinyFish
+- Verification layer normalizes evidence and only accepts claims that pass validation
+- Produces verified impact chains, vulnerability assessments, and contingency recommendations
+
+**Business use**: Stress-test supply chains and generate evidence-backed contingency plans before real shocks occur
+
+---
+
+#### 🟡 **Sentry — Real-Time Signal Monitoring**
+**What it does**: Live observability layer that continuously tracks global supply chain signals
+
+- Surfaces structured signals: commodity prices, trade activity, policy changes, and supply dependencies
+- Each signal assigned a live status: `STABLE` → `MILD` → `DISRUPTED`
+- Provides a signal overview (total monitored, active alerts, data sources), individual signal cards (category, value, trend, threshold, sources), and a chronological detection feed
+- Displays all contributing data sources (Reuters, Bloomberg, MarineTraffic, FAO, etc.) for full traceability
+- **Run Sweep**: manual refresh that re-triggers the scraping pipeline and recomputes all signals on demand
+- Acts as the **entry point of intelligence** — signals crossing thresholds feed into the Reactive Flow as disruption events, and real-world trends inform What-If Scenario inputs
+
+**Business use**: Always-on situational awareness dashboard — monitor early signals, inspect trends, and verify data sources without waiting for a disruption to be declared
 
 ---
 
@@ -116,33 +119,54 @@ The platform automatically:
 
 ---
 
+## Business Value
+
+### 1. **Risk Mitigation**
+- **Identify vulnerabilities early**: Know which suppliers, countries, and commodities pose the highest risk
+- **Reduce supply chain shocks**: Early warning enables proactive sourcing, inventory adjustments, and contingency planning
+- **Protect critical sectors**: Ensure food security, energy stability, and essential goods availability
+
+### 2. **Strategic Decision Support**
+- **Evidence-based planning**: Data-driven intelligence for trade negotiations, supplier diversification, and strategic reserves
+- **Policy informed by reality**: Supply chain visibility and predictive modeling informs national resilience policies
+- **Cross-agency coordination**: Centralized intelligence platform for government agencies to share insights
+
+### 3. **Operational Efficiency**
+- **Automated intelligence gathering**: Continuous monitoring reduces manual research burden
+- **Fast signal detection**: LLM-powered classification flags high-severity disruptions immediately
+- **Reduced false positives**: Intelligent deduplication and consolidation filters noise, surfaces only meaningful events
+
+### 4. **Competitive Advantage**
+- **Market knowledge**: Understanding supply chain shifts before competitors enables faster adaptation
+- **Procurement optimization**: Negotiate from position of strength with better visibility into market conditions
+- **Investor confidence**: Demonstrate supply chain resilience to stakeholders and markets
+
+---
+
 ## Example Scenarios
 
-### **Scenario 1: Geopolitical Trade Conflict**
-A major trade dispute erupts between Singapore's main oil supplier and a neighboring country.
-- **ALORE detects**: New headlines about the conflict + LLM identifies energy sector impact
-- **Severity assigned**: `CRITICAL` (energy is essential commodity)
-- **Action triggered**: Energy ministry reviews strategic reserves, explores alternative suppliers
-- **Value**: 2-week early warning vs. discovering problem when deliveries stop
+### **Scenario 1: Reactive Flow — Geopolitical Oil Disruption**
+A geopolitical crisis disrupts Singapore's primary crude oil supply route through the Strait of Hormuz.
+- **ALORE detects**: Disruption monitor flags the event as `CRITICAL` (energy is essential commodity)
+- **Intelligence gathered**: Country-specific packets are prepared for Singapore, Saudi Arabia, Nigeria, and Kazakhstan—each with live export capacity, political constraints, and trade flow data via TinyFish
+- **Negotiation simulations launched**:
+  - SG Agent vs Saudi Arabia Agent → Judge evaluates pricing, delivery timeline, and diplomatic alignment
+  - SG Agent vs Nigeria Agent → Judge evaluates capacity but flags political instability risk
+  - SG Agent vs Kazakhstan Agent → Judge evaluates logistics cost and slower delivery window
+- **Aggregated recommendation**: Saudi Arabia ranked as best immediate partner (fastest ramp-up, existing relationship), with Kazakhstan as secondary hedge
+- **Value**: Decision-makers receive a data-backed, negotiation-tested recommendation within hours—not weeks of manual diplomatic outreach
 
 ---
 
-### **Scenario 2: Natural Disaster**
-A hurricane hits a region producing 30% of Singapore's imported wheat.
-- **ALORE detects**: News of harvest damage + LLM links to Singapore supply chain data
-- **Severity assigned**: `DISRUPTED` (food security threat)
-- **Historical context**: Event consolidated with prior similar events, showing pattern frequency
-- **Action triggered**: Food authority activates alternative sourcing agreements
-- **Value**: Automated detection + pattern visibility improves resilience planning
-
----
-
-### **Scenario 3: Supply Constraint**
-A factory producing critical semiconductor components shuts down temporarily.
-- **ALORE detects**: News of shutdown + LLM assesses impact on Singapore's tech supply chain
-- **Severity assigned**: `CONSTRAINED` (manageable impact)
-- **Action triggered**: Electronics manufacturers adjust production schedules
-- **Value**: Early signal allows smooth adjustment rather than production halts
+### **Scenario 2: Proactive Flow — What-If Scenario on Rare Earth Export Ban**
+A policy analyst asks: *"What if China restricts rare earth exports for 12 months?"*
+- **Scenario seeded**: The what-if engine accepts the hypothetical and initializes world state with current rare earth dependency data
+- **Propagation**: The engine identifies cascading effects—semiconductor manufacturing delays, defense electronics shortages, EV battery production slowdowns across ASEAN
+- **Claims generated**: Agent layer proposes downstream consequences (e.g., "Singapore's electronics re-export sector contracts by 15%")
+- **Evidence retrieved**: TinyFish fetches real-world data on alternative suppliers (Australia, Vietnam), current stockpile levels, and historical precedent from 2010 rare earth restrictions
+- **Verification**: Claims checked against evidence—weak claims rejected, strong claims accepted as verified facts
+- **Output**: Verified impact chain with confidence scores, vulnerability map, and contingency plan recommending strategic stockpile expansion and supplier diversification to Australia
+- **Value**: Singapore identifies a critical vulnerability and develops a contingency strategy *before* the disruption occurs
 
 ---
 
@@ -158,18 +182,6 @@ A factory producing critical semiconductor components shuts down temporarily.
 
 ---
 
-## Impact Metrics
-
-Measure ALORE success by:
-- **Detection speed**: Days from disruption to alert (vs. weeks of manual discovery)
-- **False positive rate**: Relevant events surfaced / total events flagged
-- **Actionability**: % of alerts that trigger actual response/decision
-- **Coverage**: % of Singapore's critical supply chains monitored
-- **Cost savings**: Avoided supply disruption costs prevented by early action
-- **Strategic value**: Policy decisions informed by TINYFISH intelligence
-
----
-
 ## Vision
 
 ALORE is the **digital immune system** for Singapore's supply chain. Just as the human immune system detects and responds to threats automatically, ALORE continuously monitors the global environment, detects disruption signals, and alerts human decision-makers to take protective action.
@@ -178,54 +190,292 @@ The goal: **Transform Singapore from reactive responder to proactive resilience 
 
 ---
 
-## Planned Features (Phase 2)
+## Detailed System Flow and Architecture
 
-### 🤝 **Pre-Negotiation Simulation Agent**
-**What it will do**: Intelligent trade negotiation simulation before real-world engagement
-
-- **Process**:
-  1. Internal discussion phase: Singapore agencies debate internal priorities, constraints, alternatives
-  2. External negotiation phase: AI agents representing Singapore and alternative supplier countries negotiate
-  3. Each agent equipped with live supply chain data via TINYSIDH (country-specific commodity availability, production capacity, trade flows)
-  4. Agents debate trade-offs, pricing, delivery timelines, political considerations
-  5. Generates negotiation outcomes and recommended positions
-
-- **Business value**:
-  - **Risk-free exploration**: Test negotiation outcomes before contacting real trading partners
-  - **Better preparation**: Know likely positions and resistance points before formal talks
-  - **Faster decisions**: Simulate multiple scenarios quickly to find optimal agreements
-  - **Confident negotiations**: Engage from position of strength with predicted outcomes
-  - **Relationship preservation**: Avoid failed negotiations that damage diplomatic ties
+This section elaborates on the two core capabilities: **reactive disruption response** and **proactive what-if scenario simulation**. The diagrams below show how each capability is structured internally and how information flows through the system to produce grounded, actionable outputs. ALORE is designed to help Singapore respond to critical import disruptions and prepare for future risks, especially in a context where Singapore is highly trade-dependent and exposed to chokepoints and sudden global shocks.
 
 ---
 
-### 🎯 **What-If Scenario Simulation**
-**What it will do**: Model hypothetical supply chain disruptions and mitigation strategies
+### Key Feature 1: Reactive Flow — Real-Time Disruption Response
 
-- **Capabilities**:
-  1. Define hypothetical scenario (e.g., "What if Country X closes ports for 6 months?")
-  2. Simulate cascading impact across all dependent supply chains
-  3. Model alternative sourcing options and their costs/risks
-  4. Evaluate mitigation strategies (emergency reserves, alternate suppliers, domestic production)
-  5. Quantify outcomes: delays, cost increases, vulnerability gaps
-  6. Compare scenarios side-by-side to prioritize defenses
+This feature corresponds to the pipeline that starts from a disruption event and ends with a data-backed recommendation on which trade partner to engage first.
 
-- **Business value**:
-  - **Proactive resilience**: Identify vulnerabilities before disruptions occur
-  - **Better contingency planning**: Test and refine response strategies in simulation
-  - **Informed investments**: Know which supply chain investments yield highest resilience improvement
-  - **Crisis preparedness**: Decision-makers already understand likely impacts and responses
-  - **Strategic priorities**: Focus resources on highest-impact vulnerabilities
+#### What this feature does
+
+When a real disruption occurs, the system does not immediately jump to a recommendation. Instead, it runs a **staged reasoning workflow** that first gathers intelligence, then simulates negotiation possibilities, and finally aggregates the outcomes into a decision-support output.
+
+The purpose of this flow is to answer a question like:
+
+> *"Given that a supplier route is disrupted, which alternative country should Singapore engage first, and why?"*
+
+#### Architecture process
+
+The debate architecture can be understood as four connected stages:
+
+#### 1. Input layer: disruption intake
+
+The process begins with a **disruption event**. This can represent a supply interruption involving a country, route, commodity, or geopolitical constraint. The orchestrator agent receives this event and triggers the rest of the system.
+
+At this point, the disruption is treated as the initiating signal for a wider analysis pipeline rather than as an isolated alert.
+
+#### 2. Intelligence layer: country-specific information preparation
+
+After the disruption is received, the system prepares **intelligence packets** for Singapore and each candidate substitute country.
+
+Each country has its own intelligence pipeline:
+
+- **Scraper** → **Knowledge Base** → **RAG** → **Planning Agent**
+
+This means every country is modeled with its own information context rather than sharing one generic pool of knowledge.
+
+**Why this matters:**
+
+- Singapore should reason from its own needs, constraints, and goals.
+- A supplier country should reason from its own export capacity, incentives, political position, and constraints.
+- This prevents the debate from becoming unrealistic or overly symmetric.
+
+**Flow in practice:**
+
+1. The **scraper** gathers relevant external information.
+2. The **knowledge base** stores normalized country-specific information.
+3. **RAG** retrieves the most relevant facts for the current disruption.
+4. The **planning agent** converts retrieved facts into structured arguments or negotiation positions.
+
+So before any debate begins, each side is equipped with a **grounded briefing packet**.
+
+#### 3. Simulation layer: negotiation and debate
+
+Once country-specific intelligence has been prepared, the system launches several negotiation simulations **in parallel**.
+
+Each simulation has the structure:
+
+> **Singapore Agent** ↔ **Country Agent** → **Judge**
+
+For example:
+
+- SG vs Country A
+- SG vs Country B
+- SG vs Country C
+
+Each pair runs as an independent negotiation track.
+
+Within each simulation:
+
+- The **Singapore agent** argues from the perspective of Singapore's supply security, urgency, and strategic goals.
+- The **country agent** argues from the perspective of the supplier country's interests and constraints.
+- The **judge** evaluates the exchange and produces an agreement-oriented assessment.
+
+This is not open-ended conversation for its own sake. The debate is a **structured evaluation mechanism** used to test:
+
+- whether a partnership is viable,
+- what trade-offs are involved,
+- where the resistance points are,
+- whether the outcome aligns with the user's goals.
+
+This layer turns raw intelligence into a **negotiation outcome** rather than a static report.
+
+#### 4. Decision layer: aggregation and recommendation
+
+Each negotiation track produces an output that is then sent into the **results aggregator**.
+
+The decision layer combines all parallel simulation outcomes and generates:
+
+- **Best partner selection**
+- **Trade-off comparison**
+- **Recommendation**
+
+Instead of returning three disconnected simulations, the system synthesizes them into a **single decision-support package** for stakeholders such as policymakers, businesses, or citizens.
+
+#### Expanded description of the architecture
+
+The debate architecture is designed around the idea that decision quality improves when each option is evaluated under its own evidence and negotiation context.
+
+The important architectural choices are:
+
+| Choice | Rationale |
+|--------|-----------|
+| **Separate intelligence stacks per country** | Ensures every country agent is grounded in different facts and incentives |
+| **Parallel simulation branches** | Evaluates options independently, making comparison cleaner and faster |
+| **Judge in every branch** | Acts as a structured evaluator rather than leaving output as raw agent dialogue |
+| **Central aggregation at the end** | Prevents fragmented outputs and produces a single recommendation layer |
+
+#### Why this matters
+
+This architecture turns disruption response into more than a monitoring system. It becomes a **decision simulation system** that can move from detection to recommendation in a structured way.
+
+In short, the reactive flow does three things:
+
+1. **Understands** the disruption
+2. **Tests** alternatives through negotiation
+3. **Recommends** the best actionable path
+
+---
+
+### Key Feature 2: Proactive Flow — What-If Scenario Simulation
+
+This feature allows users to input a hypothetical scenario, after which the system predicts its likelihood and consequences, generates a pre-emptive strategy, and improves readiness.
+
+#### What this feature does
+
+This feature allows users to ask:
+
+> *"What happens if this disruption occurs?"*
+
+Instead of waiting for a real event, the system accepts a hypothetical disruption and simulates how it may propagate across the broader supply ecosystem.
+
+The goal is not only to predict impact, but also to **generate contingency plans** and **improve preparedness**.
+
+#### Architecture process
+
+The scenario engine architecture is more internal and system-oriented than the debate architecture. It focuses on state, propagation, evidence, and verification.
+
+It can be read as six cooperating layers.
+
+#### 1. Scenario engine: stateful simulation core
+
+At the top of the architecture is the **scenario engine**, which contains:
+
+- **Propagation Rules** — define how one disruption can trigger downstream effects
+- **Events** — discrete happenings within the simulation
+- **Confidence Scoring** — tracks how strongly supported each inferred consequence is
+- **World State** — represents the current state of the simulated environment
+- **Event Queue** — stores pending events to process
+
+This is the simulation backbone. It exists so the simulation is not just a one-shot LLM answer. Instead, it behaves like a **stateful engine** that can evolve over time as more consequences are discovered.
+
+#### 2. Orchestration layer: execution control
+
+Below the scenario engine is the **orchestration layer**, which coordinates the workflow through nodes such as:
+
+- `ScenarioSeedNode`
+- `TinyFishExecutorNode`
+- `PropagationNode`
+- `TerminationCheckNode`
+- `DebatePolicyNode`
+- `ClaimPlannerNode`
+- `EvidencePlannerNode`
+- `StateUpdateNode`
+
+A typical flow is:
+
+1. Seed the scenario
+2. Propagate effects
+3. Decide what claims need to be generated
+4. Decide what evidence needs to be retrieved
+5. Validate updates
+6. Write results back into the world state
+7. Check whether the simulation should continue
+
+This graph-based approach makes the system **modular and inspectable**. Each node has a clear responsibility.
+
+#### 3. Agent layer: reasoning actions
+
+The agent layer contains the reasoning primitives:
+
+- `propose_claim` — generate hypotheses
+- `request_evidence` — request supporting evidence
+- `propose_consequence` — expand the scenario into downstream consequences
+- `challenge_claim` — challenge weak claims
+
+This layer gives the simulation its **exploratory intelligence**, while the rest of the system constrains and verifies that exploration.
+
+#### 4. Evidence layer: external grounding with TinyFish
+
+The evidence layer connects the simulation to the outside world through **TinyFish** and other external web sources.
+
+Its role is to retrieve real supporting information relevant to:
+
+- a proposed claim,
+- a possible downstream consequence,
+- or a scenario assumption.
+
+This makes the simulation more than speculative brainstorming. It becomes a system that can **support hypothetical modeling with retrieved external evidence**.
+
+For example, if the simulation proposes that a disruption in one region could affect shipping or commodity pricing, the evidence layer can collect supporting material from external sources before the claim is accepted.
+
+#### 5. Verification layer: evidence normalization and claim verification
+
+The verification layer consists of:
+
+- `EvidenceNormalizerNode` — turns raw evidence into structured format
+- `ClaimVerifierNode` — checks claims against structured evidence
+
+Only approved claims move forward as verified outputs. This step is important because the system should not update the world state from unverified speculation. The verification layer acts as a **gatekeeper** between exploration and accepted simulation truth.
+
+#### 6. Data objects: structured outputs of the simulation
+
+At the bottom of the architecture are the data objects:
+
+| Object | Role |
+|--------|------|
+| `VerifiedFact` | Accepted truths within the simulation |
+| `EvidenceBundle` | Collections of retrieved evidence |
+| `Event` | Discrete simulation happenings |
+| `Claim` | Hypotheses generated by the agent layer |
+| `EvidenceTask` | Tasks for evidence retrieval |
+
+These objects are the common language of the system, making it possible to move information cleanly across layers.
+
+#### Expanded description of the architecture
+
+The scenario engine architecture is built around one core principle:
+
+> **Hypothetical scenarios should still be processed through a disciplined, evidence-aware reasoning pipeline.**
+
+That is why the architecture is not just a simple "input → model → output" structure. Instead, it contains:
+
+- a state model,
+- an event queue,
+- a claim/evidence loop,
+- a verification stage,
+- and a termination check.
+
+This design allows the system to **simulate chain reactions in a controlled way**.
+
+For example, a user may define a disruption involving a key supplier country and a critical commodity. The engine seeds that scenario, expands possible downstream effects, asks what consequences are plausible, retrieves evidence, verifies claims, updates the simulated world state, and repeats until the system determines that the scenario has been sufficiently explored.
+
+That is how the architecture supports both:
+
+- **Likelihood-oriented analysis** — how probable is each consequence?
+- **Pre-emptive planning** — what should be done in advance?
+
+#### Why this matters
+
+This architecture gives ALORE a **proactive capability** rather than limiting it to disruption detection.
+
+It allows the system to:
+
+- **Stress-test** supply chains before real shocks occur
+- **Identify vulnerabilities** early
+- **Generate contingency plans** grounded in evidence rather than speculation
+
+---
+
+## All Features
+
+| Feature | Benefit |
+|---------|---------|
+| **Real-time Monitoring** | Continuous 24/7 event detection—no manual scanning required |
+| **Reactive Negotiation Simulation** | Automatically simulates trade negotiations with candidate partners when a disruption hits, producing a ranked recommendation with trade-off analysis |
+| **What-If Scenario Simulation** | Proactively models hypothetical disruptions, propagates cascading effects, and generates evidence-backed contingency plans before real shocks occur |
+| **Sentry Signal Monitoring** | Live observability dashboard tracking commodity prices, trade activity, and policy changes — signals feed into reactive and proactive flows |
+| **Severity Ranking** | Focus on what matters: `CRITICAL` and `DISRUPTED` events get priority |
+| **Historical Tracking** | Build knowledge of patterns, repeating risks, and seasonal vulnerabilities |
+| **Deduplication & Consolidation** | One unified event record prevents duplicate alerts and confusion |
+| **Supply Chain Context** | News curator understands Singapore's supply dependencies—flags relevant events automatically |
+| **LLM-Powered Classification** | Semantic understanding of disruption context (not just keyword matching) |
 
 ---
 
 ## Roadmap
 
-- **Phase 1 (Current)**: Supply chain monitoring, news curation, disruption detection
-- **Phase 2 (Planned)**: Pre-negotiation simulation, what-if scenario modeling
-- **Phase 3 (Future)**:
+- **Phase 1 (Current)**: Supply chain monitoring, news curation, disruption detection, reactive negotiation simulation, what-if scenario modeling
+- **Phase 2 (Next)**:
   - Expand commodity coverage (beyond food/energy to electronics, rare earths, pharmaceuticals)
   - Integrate with government and industry supply chain datasets
   - Predictive disruption models (anticipate disruptions before they occur)
+- **Phase 3 (Future)**:
   - Real-time portfolio optimization (auto-recommend sourcing adjustments)
   - Cross-agency collaboration and coordinated response workflows
+  - Multi-scenario comparison dashboards for side-by-side contingency evaluation
+  - Continuous learning from past disruption outcomes to improve simulation accuracy
