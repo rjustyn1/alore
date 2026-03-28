@@ -86,6 +86,20 @@ The platform automatically:
 
 ---
 
+#### 🟡 **Sentry — Real-Time Signal Monitoring**
+**What it does**: Live observability layer that continuously tracks global supply chain signals
+
+- Surfaces structured signals: commodity prices, trade activity, policy changes, and supply dependencies
+- Each signal assigned a live status: `STABLE` → `MILD` → `DISRUPTED`
+- Provides a signal overview (total monitored, active alerts, data sources), individual signal cards (category, value, trend, threshold, sources), and a chronological detection feed
+- Displays all contributing data sources (Reuters, Bloomberg, MarineTraffic, FAO, etc.) for full traceability
+- **Run Sweep**: manual refresh that re-triggers the scraping pipeline and recomputes all signals on demand
+- Acts as the **entry point of intelligence** — signals crossing thresholds feed into the Reactive Flow as disruption events, and real-world trends inform What-If Scenario inputs
+
+**Business use**: Always-on situational awareness dashboard — monitor early signals, inspect trends, and verify data sources without waiting for a disruption to be declared
+
+---
+
 ## Who Benefits?
 
 ### **Government & Policy**
@@ -444,6 +458,7 @@ It allows the system to:
 | **Real-time Monitoring** | Continuous 24/7 event detection—no manual scanning required |
 | **Reactive Negotiation Simulation** | Automatically simulates trade negotiations with candidate partners when a disruption hits, producing a ranked recommendation with trade-off analysis |
 | **What-If Scenario Simulation** | Proactively models hypothetical disruptions, propagates cascading effects, and generates evidence-backed contingency plans before real shocks occur |
+| **Sentry Signal Monitoring** | Live observability dashboard tracking commodity prices, trade activity, and policy changes — signals feed into reactive and proactive flows |
 | **Severity Ranking** | Focus on what matters: `CRITICAL` and `DISRUPTED` events get priority |
 | **Historical Tracking** | Build knowledge of patterns, repeating risks, and seasonal vulnerabilities |
 | **Deduplication & Consolidation** | One unified event record prevents duplicate alerts and confusion |
