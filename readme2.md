@@ -12,30 +12,6 @@ The platform automatically:
 
 ---
 
-## Business Value
-
-### 1. **Risk Mitigation**
-- **Identify vulnerabilities early**: Know which suppliers, countries, and commodities pose the highest risk
-- **Reduce supply chain shocks**: Early warning enables proactive sourcing, inventory adjustments, and contingency planning
-- **Protect critical sectors**: Ensure food security, energy stability, and essential goods availability
-
-### 2. **Strategic Decision Support**
-- **Evidence-based planning**: Data-driven intelligence for trade negotiations, supplier diversification, and strategic reserves
-- **Policy informed by reality**: Supply chain visibility and predictive modeling informs national resilience policies
-- **Cross-agency coordination**: Centralized intelligence platform for government agencies to share insights
-
-### 3. **Operational Efficiency**
-- **Automated intelligence gathering**: Continuous monitoring reduces manual research burden
-- **Fast signal detection**: LLM-powered classification flags high-severity disruptions immediately
-- **Reduced false positives**: Intelligent deduplication and consolidation filters noise, surfaces only meaningful events
-
-### 4. **Competitive Advantage**
-- **Market knowledge**: Understanding supply chain shifts before competitors enables faster adaptation
-- **Procurement optimization**: Negotiate from position of strength with better visibility into market conditions
-- **Investor confidence**: Demonstrate supply chain resilience to stakeholders and markets
-
----
-
 ## How ALORE Works
 
 ### **Current Modules**
@@ -126,6 +102,30 @@ The platform automatically:
 - Banks assess borrower supply chain risks
 - Insurers price supply chain disruption coverage
 - Investors evaluate supply chain resilience of Singapore-based companies
+
+---
+
+## Business Value
+
+### 1. **Risk Mitigation**
+- **Identify vulnerabilities early**: Know which suppliers, countries, and commodities pose the highest risk
+- **Reduce supply chain shocks**: Early warning enables proactive sourcing, inventory adjustments, and contingency planning
+- **Protect critical sectors**: Ensure food security, energy stability, and essential goods availability
+
+### 2. **Strategic Decision Support**
+- **Evidence-based planning**: Data-driven intelligence for trade negotiations, supplier diversification, and strategic reserves
+- **Policy informed by reality**: Supply chain visibility and predictive modeling informs national resilience policies
+- **Cross-agency coordination**: Centralized intelligence platform for government agencies to share insights
+
+### 3. **Operational Efficiency**
+- **Automated intelligence gathering**: Continuous monitoring reduces manual research burden
+- **Fast signal detection**: LLM-powered classification flags high-severity disruptions immediately
+- **Reduced false positives**: Intelligent deduplication and consolidation filters noise, surfaces only meaningful events
+
+### 4. **Competitive Advantage**
+- **Market knowledge**: Understanding supply chain shifts before competitors enables faster adaptation
+- **Procurement optimization**: Negotiate from position of strength with better visibility into market conditions
+- **Investor confidence**: Demonstrate supply chain resilience to stakeholders and markets
 
 ---
 
