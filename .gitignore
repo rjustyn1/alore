@@ -210,3 +210,5 @@ __marimo__/
 
 # All confidential data will be stored here
 data/
+
+*.local.*

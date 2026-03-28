@@ -55,24 +55,6 @@ npm run dev --prefix frontend
 - `docs/api-contracts.md`: API behavior and contract norms
 - `docs/code-review.md`: pull request and review quality bar
 
-## Disruption Event Granularity
-
-- Disruption monitor now persists one event per commodity.
-- Canonical event fields are `resource_type` and `commodity` (not `resource_types`).
-- Legacy multi-commodity rows are backfilled into single-commodity rows with new `event_id` values.
-
-## Transferable Cache (Supply Chain and News)
-
-- Supply-chain and news services now use both in-memory cache and JSON file cache.
-- Default cache files:
-  - `backend/cache/runtime/supply_chain.json`
-  - `backend/cache/runtime/news_curator.json`
-- Optional env overrides:
-  - `SUPPLY_CHAIN_CACHE_FILE`
-  - `NEWS_CACHE_FILE`
-
-To transfer cache to another machine, copy those JSON files and keep the same paths (or set env overrides to their new locations).
-
 ## Recommended Development Flow
 
 1. Read relevant docs before changing behavior.
