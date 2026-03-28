@@ -5,10 +5,10 @@
 ALORE is an **intelligent supply chain monitoring and intelligence platform** designed to help Singapore anticipate, monitor, and respond to global disruptions that threaten critical imports—food, energy, and essential commodities.
 
 The platform automatically:
-- **Tracks** Singapore's supply chain dependencies (where goods come from, what commodities are at risk)
-- **Monitors** global disruption events in real-time (political instability, natural disasters, trade conflicts)
-- **Curates** relevant news and signals that impact Singapore's supply security
-- **Alerts** decision-makers with severity-ranked intelligence when disruptions occur
+- **Tracks** Singapore supply chain dependencies (where goods come from, what commodities are at risk)
+- **Monitors** global disruption events in real-time (political instability, natural disasters, trade conflicts), and alerts when disruptions occur
+- **Reactive Mode**: If a disruption is detected, triggers simulation (can be controlled by the user)
+- **Proactive Mode**: Generates "what-if" simulations to anticipate potential disruptions
 
 ---
 
